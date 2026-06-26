@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日字型路網　道路安全改善熱點地圖</title>
+  <style>
+    :root {
+      --navy:   #1c2d42;
+      --navy2:  #243650;
+      --orange: #e07920;
+      --ora2:   #f5a030;
+      --bg:     #f4f0e8;
+      --card:   #ffffff;
+      --text:   #1a1a2e;
+      --sub:    #5a6478;
+      --border: #e0dbd0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ══ HEADER ══ */
+    header {
+      background: linear-gradient(160deg, #1c2d42 0%, #243650 60%, #1a3355 100%);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 5px;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--orange) 0px, var(--orange) 36px,
+        transparent 36px, transparent 54px
+      );
+      opacity: 0.75;
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 40px 34px;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .header-icon { font-size: 50px; line-height: 1; flex-shrink: 0; margin-top: 4px; }
+    .header-texts { flex: 1; }
+    .header-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(224,121,32,.18); border: 1px solid rgba(224,121,32,.38);
+      color: var(--ora2); font-size: 11px; font-weight: 700;
+      letter-spacing: 3px; padding: 4px 14px; border-radius: 4px; margin-bottom: 10px;
+    }
+    .header-title { font-size: 30px; font-weight: 900; letter-spacing: 3px; line-height: 1.2; margin-bottom: 12px; }
+    .header-roads { display: flex; flex-wrap: wrap; gap: 7px; }
+    .road-tag { font-size: 12px; padding: 3px 13px; border-radius: 20px; border: 1px solid; }
+    .road-tag.h { background: rgba(224,121,32,.12); border-color: rgba(224,121,32,.35); color: #f5b55a; }
+    .road-tag.v { background: rgba(86,156,214,.12); border-color: rgba(86,156,214,.35); color: #7dbde8; }
+    .header-meta {
+      text-align: right; font-size: 12px;
+      color: rgba(255,255,255,.4); line-height: 2; flex-shrink: 0;
+    }
+
+    /* ══ STATS BAR ══ */
+    .stats-bar {
+      background: linear-gradient(90deg, #c86d18 0%, var(--orange) 45%, #e88a2e 100%);
+    }
+    .stats-inner {
+      max-width: 1280px; margin: 0 auto;
+      padding: 13px 40px; display: flex; align-items: center; justify-content: center; gap: 0;
+    }
+    .stat-block {
+      display: flex; align-items: center; gap: 10px;
+      padding-right: 28px; margin-right: 28px;
+      border-right: 1px solid rgba(255,255,255,.25); color: #fff;
+    }
+    .stat-block:last-of-type { border-right: none; }
+    .stat-num { font-size: 28px; font-weight: 900; line-height: 1; }
+    .stat-label { font-size: 12px; opacity: .85; line-height: 1.45; }
+    .stats-hint {
+      margin-left: auto; display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.15); color: #fff; font-size: 13px;
+      padding: 6px 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,.25);
+    }
+
+    /* ══ MAIN ══ */
+    .main-wrap {
+      max-width: 1280px; margin: 0 auto;
+      padding: 28px 40px;
+    }
+
+    /* ══ MAP CARD ══ */
+    .map-card { overflow: visible; }
+
+    .map-stage {
+      padding: 20px 0; background: transparent;
+      display: flex; justify-content: center; align-items: center;
+      min-height: 560px; position: relative;
+    }
+    .map-img-wrap { position: relative; display: inline-block; }
+    .map-img {
+      max-width: 100%; max-height: 72vh;
+      object-fit: contain; border-radius: 10px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.18); display: block;
+    }
+
+    /* ── Info FAB ── */
+    .info-fab {
+      position: absolute; top: 16px; right: 16px;
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(6px);
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: 20px; padding: 7px 16px;
+      font-size: 13px; font-weight: 700; color: var(--navy);
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 2px 12px rgba(0,0,0,.15);
+      transition: background .15s, box-shadow .15s;
+      z-index: 20;
+    }
+    .info-fab:hover { background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+
+    /* ── Info Drawer ── */
+    .drawer-backdrop {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,.25);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+    }
+    .drawer-backdrop.open { opacity: 1; pointer-events: all; }
+
+    .info-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 600;
+      width: 320px;
+      background: var(--card);
+      box-shadow: -4px 0 32px rgba(0,0,0,.15);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .info-drawer.open { transform: translateX(0); }
+
+    .drawer-head {
+      background: var(--navy); color: #fff;
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .drawer-title { font-size: 14px; font-weight: 700; letter-spacing: 1px; flex: 1; }
+    .drawer-close {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: none; background: rgba(255,255,255,.15); color: #fff;
+      font-size: 15px; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .drawer-close:hover { background: rgba(255,255,255,.28); }
+
+    .drawer-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .drawer-body::-webkit-scrollbar { width: 4px; }
+    .drawer-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── Hotspot marker ── */
+    .hotspot {
+      position: absolute;
+      width: 44px; height: 44px;
+      border: none; background: transparent;
+      cursor: pointer; padding: 0;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+    .hs-ring {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 2px solid rgba(220,38,38,.65);
+      animation: hs-pulse 1.8s ease-out infinite;
+    }
+    .hs-ring2 {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 2px solid rgba(220,38,38,.35);
+      animation: hs-pulse 1.8s ease-out infinite .6s;
+    }
+    .hs-dot {
+      position: absolute; inset: 10px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f87171, #dc2626);
+      box-shadow: 0 2px 10px rgba(220,38,38,.55);
+      transition: transform .15s;
+    }
+    .hotspot:hover .hs-dot { transform: scale(1.2); }
+    @keyframes hs-pulse {
+      0%   { transform: scale(.85); opacity: .9; }
+      100% { transform: scale(1.7); opacity: 0; }
+    }
+
+    .map-card-footer {
+      padding: 13px 22px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--sub);
+    }
+    .north-badge {
+      margin-left: auto; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 50%; width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; color: var(--navy);
+    }
+
+    /* ══ SIDE PANEL ══ */
+    .side-panel { display: flex; flex-direction: column; gap: 16px; }
+    .panel-card {
+      background: var(--card); border-radius: 14px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.06); overflow: hidden;
+    }
+    .panel-head {
+      background: var(--navy); color: #fff;
+      padding: 11px 16px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+    }
+    .panel-body { padding: 14px 16px; }
+
+    .road-list { display: flex; flex-direction: column; gap: 7px; }
+    .road-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 10px; background: var(--bg); border-radius: 8px; font-size: 13px;
+    }
+    .road-line { width: 4px; height: 28px; border-radius: 2px; flex-shrink: 0; }
+    .road-row-name { font-weight: 700; }
+    .road-row-sub  { font-size: 11px; color: var(--sub); }
+
+    .cat-list { display: flex; flex-direction: column; gap: 5px; }
+    .cat-item { display: flex; align-items: center; gap: 10px; font-size: 12px; padding: 4px 0; }
+    .cat-dot {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .cat-name { font-weight: 600; line-height: 1.3; }
+    .cat-sub  { font-size: 11px; color: var(--sub); }
+
+    .how-list { display: flex; flex-direction: column; gap: 8px; }
+    .how-item { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; }
+    .step-circle {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--orange); color: #fff;
+      font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* ══ MODAL OVERLAY ══ */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(15,23,42,.6);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .22s;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal-box {
+      background: var(--card); border-radius: 22px;
+      max-width: 940px; width: 100%;
+      max-height: 90vh; overflow-y: auto;
+      position: relative;
+      transform: translateY(20px) scale(.98);
+      transition: transform .22s;
+      box-shadow: 0 24px 90px rgba(0,0,0,.35);
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+
+    .modal-close {
+      position: absolute; top: 14px; right: 14px;
+      width: 34px; height: 34px; border-radius: 50%;
+      border: none; background: #f1f5f9; color: #475569;
+      font-size: 16px; cursor: pointer; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+      font-family: inherit;
+    }
+    .modal-close:hover { background: #e2e8f0; color: #1e293b; }
+
+    .modal-head {
+      padding: 22px 60px 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .modal-pin {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--orange); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .modal-loc-name { font-size: 18px; font-weight: 800; }
+    .modal-loc-sub  { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .modal-tags { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+    .mtag { padding: 3px 13px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+
+    /* ── 統一分類色系（側欄圖例 & Modal 標籤共用）── */
+    .cat-walk  { background: #dbeafe; color: #1d4ed8; }   /* 🚶 行穿線內縮 */
+    .cat-stop  { background: #dcfce7; color: #15803d; }   /* 🛑 停止線退縮 */
+    .cat-line  { background: #fef9c3; color: #854d0e; }   /* 🎨 路面標線重繪 */
+    .cat-infra { background: #ffedd5; color: #c2410c; }   /* 🌿 實體改善 */
+    .cat-sign  { background: #fce7f3; color: #be185d; }   /* ⚠️ 標誌設置 */
+
+    .modal-photos {
+      padding: 22px 24px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
+    }
+    .mphoto-col { display: flex; flex-direction: column; gap: 8px; }
+    .mphoto-lbl {
+      text-align: center; font-size: 11px; font-weight: 700;
+      letter-spacing: 1px; padding: 5px 12px; border-radius: 5px;
+    }
+    .lbl-bf { background: #fee2e2; color: #991b1b; }
+    .lbl-a1 { background: #dbeafe; color: #1d4ed8; }
+    .lbl-a2 { background: #dcfce7; color: #15803d; }
+    .mphoto-frame {
+      border-radius: 10px; overflow: hidden;
+      border: 2px solid var(--border);
+    }
+    .mphoto-frame img { width: 100%; height: 200px; object-fit: cover; display: block; }
+
+    .modal-desc {
+      padding: 16px 24px 24px; border-top: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .desc-icon  { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+    .desc-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .desc-text  { font-size: 13px; color: var(--sub); line-height: 1.8; }
+    .desc-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+    .chip {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; font-size: 11px; font-weight: 600;
+      padding: 3px 12px; color: var(--text);
+    }
+
+    /* ══ FOOTER ══ */
+    footer {
+      background: var(--navy); color: rgba(255,255,255,.38);
+      text-align: center; padding: 18px 24px; font-size: 12px;
+      margin-top: 16px;
+    }
+
+    /* ══ RESPONSIVE ══ */
+    @media (max-width: 768px) {
+      .header-inner    { padding: 18px 18px 24px; flex-wrap: wrap; }
+      .header-icon     { font-size: 36px; }
+      .header-title    { font-size: 22px; letter-spacing: 1px; }
+      .header-meta     { display: none; }
+      .stats-inner     { padding: 11px 18px; flex-wrap: wrap; gap: 14px; }
+      .stats-hint      { display: none; }
+      .main-wrap       { padding: 16px; }
+      .map-stage       { padding: 16px; min-height: 320px; }
+      .info-drawer     { width: 290px; }
+      .modal-photos    { grid-template-columns: 1fr; }
+      .mphoto-frame img { height: 200px; }
+      .modal-head      { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .modal-tags      { margin-left: 0; }
+
+      /* Mobile: 直式 hotspot position */
+      .hs-1 { left: 74.6% !important; top: 52.8% !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════ HEADER ══════ -->
+<header>
+  <div class="header-inner">
+    <div class="header-icon">🗺️</div>
+    <div class="header-texts">
+      <div class="header-eyebrow">道路安全改善計畫</div>
+      <h1 class="header-title">日字型路網　改善熱點地圖</h1>
+      <div class="header-roads">
+        <span class="road-tag h">— 圓通南路</span>
+        <span class="road-tag h">— 合作街</span>
+        <span class="road-tag h">— 大新路</span>
+        <span class="road-tag v">｜ 復興路一段</span>
+        <span class="road-tag v">｜ 福潭路</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════ STATS BAR ══════ -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-block">
+      <span class="stat-num">5</span>
+      <div class="stat-label">路段<br>涵蓋</div>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num">日</span>
+      <div class="stat-label">字型<br>路網</div>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num" id="hotspot-count">1</span>
+      <div class="stat-label">改善<br>點位</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MAIN LAYOUT ══════ -->
+<div class="main-wrap">
+
+  <!-- MAP CARD -->
+  <div class="map-card">
+    <div class="map-stage">
+      <!-- ⓘ 說明按鈕 -->
+      <button class="info-fab" onclick="openDrawer()">ⓘ 說明</button>
+
+      <div class="map-img-wrap">
+        <picture>
+          <source media="(max-width: 768px)" srcset="./直式Q地圖.png">
+          <img src="./橫式Q地圖.png" alt="日字型路網示意圖" class="map-img">
+        </picture>
+
+        <button class="hotspot hs-1"
+                style="left:70%;top:55%"
+                onclick="openModal('hs1')"
+                title="合作街2號前路段">
+          <span class="hs-ring"></span>
+          <span class="hs-ring2"></span>
+          <span class="hs-dot"></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════ INFO DRAWER ══════ -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+<div class="info-drawer" id="info-drawer">
+  <div class="drawer-head">
+    <span class="drawer-title">ⓘ 地圖說明</span>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+
+    <div class="panel-card">
+      <div class="panel-head">📍 路網範圍</div>
+      <div class="panel-body">
+        <div class="road-list">
+          <div class="road-row">
+            <div class="road-line" style="background:#e07920;"></div>
+            <div><div class="road-row-name">圓通南路</div><div class="road-row-sub">橫向 · 最北</div></div>
+          </div>
+          <div class="road-row">
+            <div class="road-line" style="background:#e07920;"></div>
+            <div><div class="road-row-name">合作街</div><div class="road-row-sub">橫向 · 中段</div></div>
+          </div>
+          <div class="road-row">
+            <div class="road-line" style="background:#e07920;"></div>
+            <div><div class="road-row-name">大新路</div><div class="road-row-sub">橫向 · 最南</div></div>
+          </div>
+          <div class="road-row">
+            <div class="road-line" style="background:#3b82f6;"></div>
+            <div><div class="road-row-name">復興路一段</div><div class="road-row-sub">縱向 · 西側</div></div>
+          </div>
+          <div class="road-row">
+            <div class="road-line" style="background:#3b82f6;"></div>
+            <div><div class="road-row-name">福潭路</div><div class="road-row-sub">縱向 · 東側</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-head">🔧 改善方向類別</div>
+      <div class="panel-body">
+        <div class="cat-list">
+          <div class="cat-item">
+            <div class="cat-dot cat-walk">🚶</div>
+            <div><div class="cat-name">行穿線內縮</div><div class="cat-sub">縮短行人穿越距離</div></div>
+          </div>
+          <div class="cat-item">
+            <div class="cat-dot cat-stop">🛑</div>
+            <div><div class="cat-name">停止線退縮</div><div class="cat-sub">增加行人緩衝空間</div></div>
+          </div>
+          <div class="cat-item">
+            <div class="cat-dot cat-line">🎨</div>
+            <div><div class="cat-name">路面標線重繪</div><div class="cat-sub">強化視覺警示</div></div>
+          </div>
+          <div class="cat-item">
+            <div class="cat-dot cat-infra">🌿</div>
+            <div><div class="cat-name">實體改善</div><div class="cat-sub">人行道設施</div></div>
+          </div>
+          <div class="cat-item">
+            <div class="cat-dot cat-sign">⚠️</div>
+            <div><div class="cat-name">標誌設置</div><div class="cat-sub">新增或更換警示標誌</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-head">📖 操作說明</div>
+      <div class="panel-body">
+        <div class="how-list">
+          <div class="how-item"><div class="step-circle">1</div><span>在地圖上找到橘色圓圈標記的改善點位</span></div>
+          <div class="how-item"><div class="step-circle">2</div><span>點擊標記，開啟該路段的改善詳情視窗</span></div>
+          <div class="how-item"><div class="step-circle">3</div><span>對比查看改善前（實拍）與改善後（AI 模擬）</span></div>
+          <div class="how-item"><div class="step-circle">4</div><span>閱讀文字說明，了解改善方向與預期效益</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════ FOOTER ══════ -->
+<footer>
+  大豐環保科技股份有限公司 &nbsp;·&nbsp; 職業安全衛生管理室 &nbsp;·&nbsp; 道路安全改善計畫 &nbsp;·&nbsp; 2026
+</footer>
+
+<!-- ══════ MODAL ══════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal-box" id="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <!-- 熱點 hs1 內容 -->
+    <div id="modal-hs1">
+      <div class="modal-head">
+        <div class="modal-pin">📍</div>
+        <div>
+          <div class="modal-loc-name">合作街2號前路段</div>
+          <div class="modal-loc-sub">合作街 × 福潭路 路口南側</div>
+        </div>
+        <div class="modal-tags">
+          <span class="mtag cat-line">🎨 路面標線重繪</span>
+          <span class="mtag cat-infra">🌿 實體改善</span>
+        </div>
+      </div>
+
+      <div class="modal-photos">
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-bf">▌ 改善前（實際拍攝）</div>
+          <div class="mphoto-frame"><img src="./合作街(原圖).jpg" alt="改善前"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a1">▌ 改善方案一（標線）</div>
+          <div class="mphoto-frame"><img src="./合作街(標線).png" alt="改善後 - 標線方案"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a2">▌ 改善方案二（實體）</div>
+          <div class="mphoto-frame"><img src="./合作街(實體).png" alt="改善後 - 實體方案"></div>
+        </div>
+      </div>
+
+      <div class="modal-desc">
+        <div class="desc-icon">💡</div>
+        <div>
+          <div class="desc-title">改善說明</div>
+          <div class="desc-text">
+            現況路段缺乏停車格劃設，路邊停車混亂且壓縮通行空間，易造成視線遮蔽及行人安全疑慮。
+            方案一以綠底白線劃設標準停車格，明確規範停車位置，同時重繪車道標線；
+            方案二進一步施作實體人行道，兼顧視覺美化並形成實體緩衝，有效增進行人通行安全。
+          </div>
+          <div class="desc-chips">
+            <span class="chip">✅ 停車格劃設</span>
+            <span class="chip">✅ 路面標線重繪</span>
+            <span class="chip">✅ 分隔設置</span>
+            <span class="chip">✅ 通行空間改善</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openModal(id) {
+    // 切換內容（目前只有 hs1，日後可擴充）
+    document.querySelectorAll('#modal-box > div[id^="modal-"]').forEach(el => {
+      el.style.display = el.id === 'modal-' + id ? '' : 'none';
+    });
+    document.getElementById('modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeDrawer(); }
+  });
+
+  function openDrawer() {
+    document.getElementById('info-drawer').classList.add('open');
+    document.getElementById('drawer-backdrop').classList.add('open');
+  }
+  function closeDrawer() {
+    document.getElementById('info-drawer').classList.remove('open');
+    document.getElementById('drawer-backdrop').classList.remove('open');
+  }
+</script>
+
+</body>
+</html>
