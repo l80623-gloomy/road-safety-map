@@ -216,7 +216,7 @@
     .side-panel { display: flex; flex-direction: column; gap: 16px; }
     .panel-card {
       background: var(--card); border-radius: 14px;
-      box-shadow: 0 2px 16px rgba(0,0,0,.06); overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,0,0,.06); overflow: visible;
     }
     .panel-head {
       background: var(--navy); color: #fff;
@@ -351,15 +351,19 @@
 
     /* ══ RESPONSIVE ══ */
     @media (max-width: 768px) {
-      .header-inner    { padding: 18px 18px 24px; flex-wrap: wrap; }
-      .header-icon     { font-size: 36px; }
-      .header-title    { font-size: 22px; letter-spacing: 1px; }
+      .header-inner    { padding: 14px 16px 20px; flex-wrap: wrap; }
+      .header-icon     { font-size: 28px; }
+      .header-title    { font-size: 17px; letter-spacing: 0; }
+      .header-eyebrow  { font-size: 10px; letter-spacing: 2px; padding: 3px 10px; }
       .header-meta     { display: none; }
-      .stats-inner     { padding: 11px 18px; flex-wrap: wrap; gap: 14px; }
+      .stats-inner     { padding: 10px 16px; flex-wrap: nowrap; gap: 0; }
+      .stat-num        { font-size: 22px; }
+      .stat-label      { font-size: 10px; }
+      .stat-block      { padding-right: 16px; margin-right: 16px; }
       .stats-hint      { display: none; }
       .main-wrap       { padding: 16px; }
       .map-stage       { padding: 16px; min-height: 320px; }
-      .info-drawer     { width: 290px; }
+      .info-drawer     { width: min(310px, 92vw); }
       .modal-photos    { grid-template-columns: 1fr; }
       .mphoto-frame img { height: 200px; }
       .modal-head      { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -378,7 +382,7 @@
     <div class="header-icon">🗺️</div>
     <div class="header-texts">
       <div class="header-eyebrow">道路安全改善計畫</div>
-      <h1 class="header-title">日字型路網　改善熱點地圖</h1>
+      <h1 class="header-title">日字型路網 改善熱點地圖</h1>
       <div class="header-roads">
         <span class="road-tag h">— 圓通南路</span>
         <span class="road-tag h">— 合作街</span>
