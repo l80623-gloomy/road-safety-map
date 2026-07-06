@@ -133,18 +133,17 @@
 
     /* ── Info FAB ── */
     .info-fab {
-      position: absolute; top: 16px; right: 16px;
       display: flex; align-items: center; gap: 6px;
       background: rgba(255,255,255,.92); backdrop-filter: blur(6px);
-      border: 1px solid rgba(0,0,0,.1);
-      border-radius: 20px; padding: 7px 16px;
-      font-size: 13px; font-weight: 700; color: var(--navy);
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 12px; font-weight: 700; color: var(--navy);
       cursor: pointer; font-family: inherit;
-      box-shadow: 0 2px 12px rgba(0,0,0,.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
       transition: background .15s, box-shadow .15s;
-      z-index: 20;
+      flex-shrink: 0; margin-left: auto; white-space: nowrap;
     }
-    .info-fab:hover { background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+    .info-fab:hover { background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
 
     /* ── Info Drawer ── */
     .drawer-backdrop {
@@ -468,13 +467,11 @@
   <!-- MAP CARD -->
   <div class="map-card">
     <div class="map-stage">
-      <!-- ⓘ 說明按鈕 -->
-      <button class="info-fab" onclick="openDrawer()">ⓘ 說明</button>
-
       <div class="map-col">
         <div class="map-hint">
           <span class="map-hint-dot"></span>
           點擊地圖上的紅色標記，即可查看該路段改善前後對比與建議方案
+          <button class="info-fab" onclick="openDrawer()">ⓘ 說明</button>
         </div>
         <div class="map-img-wrap">
         <picture>
