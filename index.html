@@ -99,6 +99,23 @@
       padding: 28px 40px;
     }
 
+    /* ══ MAP COL + HINT ══ */
+    .map-col {
+      display: flex; flex-direction: column; align-items: center; max-width: 100%;
+    }
+    .map-hint {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: rgba(224,121,32,.08); border: 1px solid rgba(224,121,32,.25);
+      border-radius: 8px; padding: 10px 18px; margin-bottom: 12px;
+      font-size: 13px; color: var(--sub); line-height: 1.5;
+      text-align: center; width: 100%; box-sizing: border-box;
+    }
+    .map-hint-dot {
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+      background: radial-gradient(circle at 35% 35%, #f87171, #dc2626);
+      box-shadow: 0 0 0 3px rgba(220,38,38,.2);
+    }
+
     /* ══ MAP CARD ══ */
     .map-card { overflow: visible; }
 
@@ -369,9 +386,42 @@
       .modal-head      { flex-direction: column; align-items: flex-start; gap: 10px; }
       .modal-tags      { margin-left: 0; }
 
-      /* Mobile: 直式 hotspot position */
-      .hs-1 { left: 74.6% !important; top: 52.8% !important; }
+      /* hotspot mobile positions: managed by JS applyPositions() */
     }
+
+    /* ── Admin Bar ── */
+    #admin-trigger {
+      position: fixed; bottom: 14px; right: 14px; z-index: 8888;
+      width: 32px; height: 32px; border-radius: 50%;
+      border: none; background: rgba(28,45,66,.25);
+      color: rgba(255,255,255,.3); font-size: 15px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .2s, color .2s, opacity .2s;
+      opacity: .25;
+    }
+    #admin-trigger:hover { background: rgba(28,45,66,.75); color: #fff; opacity: 1; }
+
+    #admin-bar {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+      background: #1c2d42; border-top: 3px solid #e07920;
+      padding: 10px 16px; align-items: center; gap: 12px; flex-wrap: wrap;
+      font-size: 13px; font-family: "Microsoft JhengHei","Noto Sans TC",sans-serif;
+    }
+    #admin-bar.active { display: flex; }
+    .admin-badge {
+      background: #dc2626; color: #fff; font-weight: 800; font-size: 11px;
+      padding: 3px 10px; border-radius: 4px; letter-spacing: 1px; flex-shrink: 0;
+    }
+    #admin-map-mode { color: #94a3b8; font-size: 12px; flex-shrink: 0; }
+    #admin-tip { color: #fbbf24; font-family: monospace; font-size: 12px; flex: 1; min-width: 160px; }
+    .admin-btn {
+      border: none; padding: 7px 18px; border-radius: 6px; flex-shrink: 0;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      font-family: "Microsoft JhengHei","Noto Sans TC",sans-serif; transition: background .15s;
+    }
+    .admin-btn-save { background: #16a34a; color: #fff; }
+    .admin-btn-save.saved { background: #0d9488; }
+    .admin-btn-exit { background: #475569; color: #e2e8f0; }
   </style>
 </head>
 <body>
@@ -406,7 +456,7 @@
       <div class="stat-label">字型<br>路網</div>
     </div>
     <div class="stat-block">
-      <span class="stat-num" id="hotspot-count">1</span>
+      <span class="stat-num" id="hotspot-count">5</span>
       <div class="stat-label">改善<br>點位</div>
     </div>
   </div>
@@ -421,7 +471,12 @@
       <!-- ⓘ 說明按鈕 -->
       <button class="info-fab" onclick="openDrawer()">ⓘ 說明</button>
 
-      <div class="map-img-wrap">
+      <div class="map-col">
+        <div class="map-hint">
+          <span class="map-hint-dot"></span>
+          點擊地圖上的紅色標記，即可查看該路段改善前後對比與建議方案
+        </div>
+        <div class="map-img-wrap">
         <picture>
           <source media="(max-width: 768px)" srcset="./直式Q地圖.png">
           <img src="./橫式Q地圖.png" alt="日字型路網示意圖" class="map-img">
@@ -435,11 +490,44 @@
           <span class="hs-ring2"></span>
           <span class="hs-dot"></span>
         </button>
-      </div>
-    </div>
+        <button class="hotspot hs-2"
+                style="left:43.9%;top:83.3%"
+                onclick="openModal('hs2')"
+                title="大新路74號前路段">
+          <span class="hs-ring"></span>
+          <span class="hs-ring2"></span>
+          <span class="hs-dot"></span>
+        </button>
+        <button class="hotspot hs-3"
+                style="left:38%;top:84.4%"
+                onclick="openModal('hs3')"
+                title="大新路85號前路段">
+          <span class="hs-ring"></span>
+          <span class="hs-ring2"></span>
+          <span class="hs-dot"></span>
+        </button>
+        <button class="hotspot hs-4"
+                style="left:33.5%;top:77.9%"
+                onclick="openModal('hs4')"
+                title="復興路一段22號前路段">
+          <span class="hs-ring"></span>
+          <span class="hs-ring2"></span>
+          <span class="hs-dot"></span>
+        </button>
+        <button class="hotspot hs-5"
+                style="left:34.6%;top:63.6%"
+                onclick="openModal('hs5')"
+                title="復興路一段54號前路段">
+          <span class="hs-ring"></span>
+          <span class="hs-ring2"></span>
+          <span class="hs-dot"></span>
+        </button>
+        </div><!-- /map-img-wrap -->
+      </div><!-- /map-col -->
+    </div><!-- /map-stage -->
 
-  </div>
-</div>
+  </div><!-- /map-card -->
+</div><!-- /main-wrap -->
 
 <!-- ══════ INFO DRAWER ══════ -->
 <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
@@ -522,7 +610,7 @@
 </div>
 
 <!-- ══════ FOOTER ══════ -->
-<footer>
+<footer onclick="footerClick()" style="cursor:default;user-select:none;">
   大豐環保科技股份有限公司 &nbsp;·&nbsp; 職業安全衛生管理室 &nbsp;·&nbsp; 道路安全改善計畫 &nbsp;·&nbsp; 2026
 </footer>
 
@@ -548,15 +636,15 @@
       <div class="modal-photos">
         <div class="mphoto-col">
           <div class="mphoto-lbl lbl-bf">▌ 改善前（實際拍攝）</div>
-          <div class="mphoto-frame"><img src="./合作街(原圖).jpg" alt="改善前"></div>
+          <div class="mphoto-frame"><img src="./完成圖/合作街2號/合作街2號(原圖).jpg" alt="改善前"></div>
         </div>
         <div class="mphoto-col">
           <div class="mphoto-lbl lbl-a1">▌ 改善方案一（標線）</div>
-          <div class="mphoto-frame"><img src="./合作街(標線).png" alt="改善後 - 標線方案"></div>
+          <div class="mphoto-frame"><img src="./完成圖/合作街2號/合作街2號(標線).png" alt="改善後 - 標線方案"></div>
         </div>
         <div class="mphoto-col">
           <div class="mphoto-lbl lbl-a2">▌ 改善方案二（實體）</div>
-          <div class="mphoto-frame"><img src="./合作街(實體).png" alt="改善後 - 實體方案"></div>
+          <div class="mphoto-frame"><img src="./完成圖/合作街2號/合作街2號(實體).png" alt="改善後 - 實體方案"></div>
         </div>
       </div>
 
@@ -579,32 +667,233 @@
       </div>
     </div>
 
+    <!-- 熱點 hs2 內容 -->
+    <div id="modal-hs2">
+      <div class="modal-head">
+        <div class="modal-pin">📍</div>
+        <div>
+          <div class="modal-loc-name">大新路74號前路段</div>
+          <div class="modal-loc-sub">大新路 路段</div>
+        </div>
+        <div class="modal-tags">
+          <span class="mtag cat-line">🎨 路面標線重繪</span>
+          <span class="mtag cat-infra">🌿 實體改善</span>
+        </div>
+      </div>
+
+      <div class="modal-photos">
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-bf">▌ 改善前（實際拍攝）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路74號/大新路74號(原圖).jpg" alt="改善前"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a1">▌ 改善方案一（標線）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路74號/大新路74號(標線).png" alt="改善後 - 標線方案"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a2">▌ 改善方案二（實體）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路74號/大新路74號(實體).png" alt="改善後 - 實體方案"></div>
+        </div>
+      </div>
+
+      <div class="modal-desc">
+        <div class="desc-icon">💡</div>
+        <div>
+          <div class="desc-title">改善說明</div>
+          <div class="desc-text">
+            大新路74號前路段現況缺乏完善的行人通行設施，路邊停車與車流混雜，影響行人安全。
+            方案一以綠底白線劃設停車格並重繪車道標線，明確規範車輛停放範圍；
+            方案二進一步施作實體人行道，形成實體緩衝區，有效增進行人通行安全。
+          </div>
+          <div class="desc-chips">
+            <span class="chip">✅ 停車格劃設</span>
+            <span class="chip">✅ 路面標線重繪</span>
+            <span class="chip">✅ 實體人行道</span>
+            <span class="chip">✅ 通行空間改善</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 熱點 hs3 內容 -->
+    <div id="modal-hs3">
+      <div class="modal-head">
+        <div class="modal-pin">📍</div>
+        <div>
+          <div class="modal-loc-name">大新路85號前路段</div>
+          <div class="modal-loc-sub">大新路 路段</div>
+        </div>
+        <div class="modal-tags">
+          <span class="mtag cat-line">🎨 路面標線重繪</span>
+          <span class="mtag cat-infra">🌿 實體改善</span>
+        </div>
+      </div>
+
+      <div class="modal-photos">
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-bf">▌ 改善前（實際拍攝）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路85號/大新路85號(原圖).jpg" alt="改善前"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a1">▌ 改善方案一（標線）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路85號/大新路85號(標線).png" alt="改善後 - 標線方案"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a2">▌ 改善方案二（實體）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路85號/大新路85號(實體).png" alt="改善後 - 實體方案"></div>
+        </div>
+      </div>
+
+      <div class="modal-desc">
+        <div class="desc-icon">💡</div>
+        <div>
+          <div class="desc-title">改善說明</div>
+          <div class="desc-text">
+            大新路85號前路段現況行人空間不足，路邊停車壓縮通行寬度，存在視線遮蔽及行人安全疑慮。
+            方案一以綠底白線劃設停車格並重繪車道標線，整頓路邊停車秩序；
+            方案二進一步施作實體人行道，兼顧視覺美化並形成實體緩衝，提升行人通行安全。
+          </div>
+          <div class="desc-chips">
+            <span class="chip">✅ 停車格劃設</span>
+            <span class="chip">✅ 路面標線重繪</span>
+            <span class="chip">✅ 實體人行道</span>
+            <span class="chip">✅ 通行空間改善</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 熱點 hs4 內容 -->
+    <div id="modal-hs4">
+      <div class="modal-head">
+        <div class="modal-pin">📍</div>
+        <div>
+          <div class="modal-loc-name">復興路一段22號前路段</div>
+          <div class="modal-loc-sub">復興路一段 路段</div>
+        </div>
+        <div class="modal-tags">
+          <span class="mtag cat-line">🎨 路面標線重繪</span>
+          <span class="mtag cat-infra">🌿 實體改善</span>
+        </div>
+      </div>
+
+      <div class="modal-photos">
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-bf">▌ 改善前（實際拍攝）</div>
+          <div class="mphoto-frame"><img src="./完成圖/復興路一段22號/復興路一段22號(原圖).jpg" alt="改善前"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a1">▌ 改善方案一（標線）</div>
+          <div class="mphoto-frame"><img src="./完成圖/復興路一段22號/復興路一段22號(標線).png" alt="改善後 - 標線方案"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a2">▌ 改善方案二（實體）</div>
+          <div class="mphoto-frame"><img src="./完成圖/復興路一段22號/復興路一段22號(實體).png" alt="改善後 - 實體方案"></div>
+        </div>
+      </div>
+
+      <div class="modal-desc">
+        <div class="desc-icon">💡</div>
+        <div>
+          <div class="desc-title">改善說明</div>
+          <div class="desc-text">
+            復興路一段22號前路段現況缺乏行人通行設施，車輛停放雜亂且佔用人行空間，行人被迫走入車道，安全風險高。
+            方案一以停車格標線整頓停車秩序，重繪車道線明確分隔人車；
+            方案二施作實體人行道，提供行人安全獨立的通行空間。
+          </div>
+          <div class="desc-chips">
+            <span class="chip">✅ 停車格劃設</span>
+            <span class="chip">✅ 路面標線重繪</span>
+            <span class="chip">✅ 實體人行道</span>
+            <span class="chip">✅ 人車分隔</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 熱點 hs5 內容 -->
+    <div id="modal-hs5">
+      <div class="modal-head">
+        <div class="modal-pin">📍</div>
+        <div>
+          <div class="modal-loc-name">復興路一段54號前路段</div>
+          <div class="modal-loc-sub">復興路一段 路段</div>
+        </div>
+        <div class="modal-tags">
+          <span class="mtag cat-line">🎨 路面標線重繪</span>
+          <span class="mtag cat-infra">🌿 實體改善</span>
+        </div>
+      </div>
+
+      <div class="modal-photos">
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-bf">▌ 改善前（實際拍攝）</div>
+          <div class="mphoto-frame"><img src="./完成圖/復興路一段54號-01/復興路一段54號-01.jpg" alt="改善前"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a1">▌ 改善方案一（標線）</div>
+          <div class="mphoto-frame"><img src="./完成圖/復興路一段54號-01/復興路一段54號-01(標線).png" alt="改善後 - 標線方案"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a2">▌ 改善方案二（實體）</div>
+          <div class="mphoto-frame"><img src="./完成圖/復興路一段54號-01/復興路一段54號-01(實體).png" alt="改善後 - 實體方案"></div>
+        </div>
+      </div>
+
+      <div class="modal-desc">
+        <div class="desc-icon">💡</div>
+        <div>
+          <div class="desc-title">改善說明</div>
+          <div class="desc-text">
+            復興路一段54號前路段現況停車秩序混亂，路邊車輛佔用人行空間，行人通行動線不明確，存在行人與車輛衝突風險。
+            方案一以停車格標線規範停車位置並重繪行車標線；
+            方案二施作實體人行道，形成明確的行人通行區域，有效降低事故風險。
+          </div>
+          <div class="desc-chips">
+            <span class="chip">✅ 停車格劃設</span>
+            <span class="chip">✅ 路面標線重繪</span>
+            <span class="chip">✅ 實體人行道</span>
+            <span class="chip">✅ 動線明確化</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
+<!-- ══════ ADMIN TRIGGER ══════ -->
+<button id="admin-trigger" onclick="triggerAdmin()" title="管理員">🔒</button>
+
+<!-- ══════ ADMIN BAR ══════ -->
+<div id="admin-bar">
+  <span class="admin-badge">🔐 編輯模式</span>
+  <span id="admin-map-mode">🖥️ 桌面座標</span>
+  <span id="admin-tip">拖曳紅點調整位置，完成後按儲存</span>
+  <button class="admin-btn admin-btn-save" id="admin-save-btn" onclick="savePositions()">💾 儲存</button>
+  <button class="admin-btn admin-btn-exit" onclick="exitAdmin()">✕ 離開</button>
+</div>
+
 <script>
+  // ══ Modal / Drawer ══
   function openModal(id) {
-    // 切換內容（目前只有 hs1，日後可擴充）
+    if (isAdmin) return;
     document.querySelectorAll('#modal-box > div[id^="modal-"]').forEach(el => {
       el.style.display = el.id === 'modal-' + id ? '' : 'none';
     });
     document.getElementById('modal-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
-
   function closeModal() {
     document.getElementById('modal-overlay').classList.remove('open');
     document.body.style.overflow = '';
   }
-
   function handleOverlayClick(e) {
     if (e.target === document.getElementById('modal-overlay')) closeModal();
   }
-
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeModal(); closeDrawer(); }
   });
-
   function openDrawer() {
     document.getElementById('info-drawer').classList.add('open');
     document.getElementById('drawer-backdrop').classList.add('open');
@@ -612,6 +901,134 @@
   function closeDrawer() {
     document.getElementById('info-drawer').classList.remove('open');
     document.getElementById('drawer-backdrop').classList.remove('open');
+  }
+
+  // ══ 熱點位置管理（localStorage 持久化）══
+  const HS_LS_KEY = 'hs-positions-v1';
+  const defaultPos = [
+    {id:'hs1', hx:70.0, hy:55.0, vx:74.6, vy:52.8},
+    {id:'hs2', hx:43.9, hy:83.3, vx:43.5, vy:75.7},
+    {id:'hs3', hx:38.0, hy:84.4, vx:35.2, vy:76.0},
+    {id:'hs4', hx:33.5, hy:77.9, vx:31.1, vy:71.3},
+    {id:'hs5', hx:34.6, hy:63.6, vx:31.7, vy:62.4},
+  ];
+  let hsPos = (function() {
+    try {
+      const s = localStorage.getItem(HS_LS_KEY);
+      return s ? JSON.parse(s) : JSON.parse(JSON.stringify(defaultPos));
+    } catch(e) { return JSON.parse(JSON.stringify(defaultPos)); }
+  })();
+
+  function applyPositions() {
+    const mobile = window.innerWidth <= 768;
+    hsPos.forEach(hs => {
+      const n = hs.id.slice(2);
+      const btn = document.querySelector('.hotspot.hs-' + n);
+      if (!btn) return;
+      btn.style.left = (mobile ? hs.vx : hs.hx) + '%';
+      btn.style.top  = (mobile ? hs.vy : hs.hy) + '%';
+    });
+  }
+  applyPositions();
+
+  function syncHintWidth() {
+    const img  = document.querySelector('.map-img');
+    const hint = document.querySelector('.map-hint');
+    if (!img || !hint) return;
+    const w = img.offsetWidth;
+    if (w > 0) hint.style.width = w + 'px';
+  }
+  const mapImg = document.querySelector('.map-img');
+  if (mapImg.complete) syncHintWidth();
+  else mapImg.addEventListener('load', syncHintWidth);
+  window.addEventListener('resize', () => { applyPositions(); syncHintWidth(); });
+
+  // ══ 管理員模式 ══
+  let isAdmin = false;
+  let adminDrag = null;
+  let footerTaps = 0, footerTimer = null;
+
+  function triggerAdmin() {
+    const pw = prompt('請輸入管理員密碼：');
+    if (pw === 'gloomy') enterAdmin();
+    else if (pw !== null) alert('密碼錯誤');
+  }
+
+  function footerClick() {
+    footerTaps++;
+    clearTimeout(footerTimer);
+    if (footerTaps >= 3) { footerTaps = 0; triggerAdmin(); return; }
+    footerTimer = setTimeout(() => { footerTaps = 0; }, 1500);
+  }
+
+  function enterAdmin() {
+    isAdmin = true;
+    document.getElementById('admin-bar').classList.add('active');
+    const mobile = window.innerWidth <= 768;
+    document.getElementById('admin-map-mode').textContent = mobile ? '📱 手機座標' : '🖥️ 桌面座標';
+    document.querySelectorAll('.hotspot').forEach(btn => {
+      btn.addEventListener('pointerdown', startAdminDrag);
+      btn.style.cursor = 'grab';
+    });
+  }
+
+  function exitAdmin() {
+    isAdmin = false;
+    document.getElementById('admin-bar').classList.remove('active');
+    document.querySelectorAll('.hotspot').forEach(btn => {
+      btn.removeEventListener('pointerdown', startAdminDrag);
+      btn.style.cursor = '';
+    });
+    adminDrag = null;
+    document.removeEventListener('pointermove', onAdminMove);
+    document.removeEventListener('pointerup',   onAdminUp);
+  }
+
+  function savePositions() {
+    localStorage.setItem(HS_LS_KEY, JSON.stringify(hsPos));
+    const btn = document.getElementById('admin-save-btn');
+    btn.textContent = '✔ 已儲存';
+    btn.classList.add('saved');
+    setTimeout(() => { btn.textContent = '💾 儲存'; btn.classList.remove('saved'); }, 2000);
+  }
+
+  function startAdminDrag(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    const m = btn.className.match(/hs-(\d+)/);
+    if (!m) return;
+    adminDrag = {
+      btn,
+      hsId: 'hs' + m[1],
+      imgRect: document.querySelector('.map-img').getBoundingClientRect()
+    };
+    document.addEventListener('pointermove', onAdminMove);
+    document.addEventListener('pointerup',   onAdminUp);
+  }
+
+  function onAdminMove(e) {
+    if (!adminDrag) return;
+    const { btn, hsId, imgRect } = adminDrag;
+    let x = +((e.clientX - imgRect.left) / imgRect.width  * 100).toFixed(1);
+    let y = +((e.clientY - imgRect.top)  / imgRect.height * 100).toFixed(1);
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
+    btn.style.left = x + '%';
+    btn.style.top  = y + '%';
+    const hs = hsPos.find(h => h.id === hsId);
+    if (hs) {
+      if (window.innerWidth <= 768) { hs.vx = x; hs.vy = y; }
+      else                          { hs.hx = x; hs.hy = y; }
+    }
+    document.getElementById('admin-tip').textContent =
+      hsId + ': left ' + x + '%  top ' + y + '%';
+  }
+
+  function onAdminUp() {
+    document.removeEventListener('pointermove', onAdminMove);
+    document.removeEventListener('pointerup',   onAdminUp);
+    adminDrag = null;
   }
 </script>
 
