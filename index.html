@@ -418,9 +418,107 @@
       font-size: 12px; font-weight: 700; cursor: pointer;
       font-family: "Microsoft JhengHei","Noto Sans TC",sans-serif; transition: background .15s;
     }
+    .admin-btn-add  { background: #e07920; color: #fff; }
     .admin-btn-save { background: #16a34a; color: #fff; }
     .admin-btn-save.saved { background: #0d9488; }
     .admin-btn-exit { background: #475569; color: #e2e8f0; }
+
+    /* ── Add Hotspot Modal ── */
+    #ah-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+      display: none; align-items: flex-start; justify-content: center;
+      padding: 20px; overflow-y: auto;
+    }
+    #ah-overlay.open { display: flex; }
+    #ah-modal {
+      background: #fff; border-radius: 14px; width: 100%; max-width: 700px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.35); margin: auto; font-family: "Microsoft JhengHei","Noto Sans TC",sans-serif;
+    }
+    .ah-head {
+      background: #1c2d42; color: #fff; padding: 16px 20px;
+      border-radius: 14px 14px 0 0;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 15px; font-weight: 800;
+    }
+    .ah-head-close {
+      background: rgba(255,255,255,.15); border: none; color: #fff;
+      width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+      font-size: 15px; display: flex; align-items: center; justify-content: center;
+    }
+    .ah-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .ah-section { border: 1px solid #e0dbd0; border-radius: 10px; padding: 14px 16px; }
+    .ah-section-title { font-size: 12px; font-weight: 800; color: #1c2d42; letter-spacing: 1px; margin-bottom: 12px; }
+    .ah-field { margin-bottom: 10px; }
+    .ah-field:last-child { margin-bottom: 0; }
+    .ah-field > label { display: block; font-size: 11px; font-weight: 700; color: #5a6478; margin-bottom: 5px; }
+    .ah-input {
+      width: 100%; border: 1px solid #e0dbd0; border-radius: 7px; padding: 8px 12px;
+      font-size: 13px; font-family: inherit; color: #1a1a2e; background: #faf9f7;
+      transition: border-color .15s; box-sizing: border-box;
+    }
+    .ah-input:focus { outline: none; border-color: #e07920; background: #fff; }
+    textarea.ah-input { resize: vertical; }
+    .ah-cats { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ah-cat-lbl {
+      display: flex; align-items: center; gap: 5px; cursor: pointer;
+      font-size: 12px; background: #f4f0e8; border: 1px solid #e0dbd0;
+      border-radius: 20px; padding: 5px 12px; transition: background .15s; user-select: none;
+    }
+    .ah-cat-lbl:hover { background: #eae6dc; }
+    .ah-photos { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .ah-photo-lbl { font-size: 11px; font-weight: 700; color: #5a6478; margin-bottom: 6px; text-align: center; }
+    .ah-photo-box {
+      border: 2px dashed #e0dbd0; border-radius: 8px; height: 110px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; overflow: hidden; background: #faf9f7; transition: border-color .15s;
+    }
+    .ah-photo-box:hover { border-color: #e07920; }
+    .ah-photo-box img { width: 100%; height: 100%; object-fit: cover; }
+    .ah-photo-box span { font-size: 11px; color: #94a3b8; }
+    .ah-ai-btn {
+      background: #1c2d42; color: #fff; border: none; padding: 9px 20px;
+      border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: background .15s;
+    }
+    .ah-ai-btn:hover:not(:disabled) { background: #243650; }
+    .ah-ai-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    #ah-ai-status { font-size: 12px; color: #5a6478; margin-top: 6px; min-height: 18px; }
+    .ah-pos-row { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+    .ah-pos-group label { font-size: 11px; font-weight: 700; color: #5a6478; display: block; margin-bottom: 4px; }
+    .ah-pos-pair { display: flex; gap: 6px; }
+    .ah-pos-pair input {
+      width: 76px; border: 1px solid #e0dbd0; border-radius: 7px; padding: 7px 8px;
+      font-size: 13px; font-family: monospace; color: #e07920;
+      background: #faf9f7; text-align: center; box-sizing: border-box;
+    }
+    .ah-pick-btn {
+      background: #e07920; color: #fff; border: none; padding: 8px 14px;
+      border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer;
+      font-family: inherit; white-space: nowrap; align-self: flex-end;
+    }
+    #ah-pos-tip { font-size: 11px; color: #888; margin-top: 6px; min-height: 16px; }
+    .ah-token-row { display: flex; gap: 8px; align-items: center; }
+    .ah-token-row input { flex: 1; }
+    .ah-remember-lbl { display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+    #ah-publish-status { font-size: 12px; color: #5a6478; min-height: 18px; margin-bottom: 4px; }
+    .ah-footer { display: flex; gap: 10px; justify-content: flex-end; }
+    .ah-btn-cancel {
+      background: #f4f0e8; border: 1px solid #e0dbd0; color: #5a6478;
+      padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    }
+    .ah-btn-publish {
+      background: #16a34a; color: #fff; border: none; padding: 9px 24px;
+      border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: background .15s;
+    }
+    .ah-btn-publish:hover:not(:disabled) { background: #15803d; }
+    .ah-btn-publish:disabled { background: #94a3b8; cursor: not-allowed; }
+    @media (max-width: 600px) {
+      .ah-photos { grid-template-columns: 1fr; }
+      .ah-pos-row { flex-direction: column; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
@@ -519,6 +617,7 @@
           <span class="hs-ring2"></span>
           <span class="hs-dot"></span>
         </button>
+        <!-- HS-BTNS -->
         </div><!-- /map-img-wrap -->
       </div><!-- /map-col -->
     </div><!-- /map-stage -->
@@ -855,7 +954,129 @@
         </div>
       </div>
     </div>
+    <!-- HS-MODALS-END -->
 
+  </div>
+</div>
+
+<!-- ══════ ADD HOTSPOT MODAL ══════ -->
+<div id="ah-overlay">
+  <div id="ah-modal">
+    <div class="ah-head">
+      <span>➕ 新增改善熱點</span>
+      <button class="ah-head-close" onclick="closeAddHotspot()">✕</button>
+    </div>
+    <div class="ah-body">
+
+      <!-- ① 基本資料 -->
+      <div class="ah-section">
+        <div class="ah-section-title">① 基本資料</div>
+        <div class="ah-field">
+          <label>熱點名稱（路段）</label>
+          <input type="text" id="ah-name" class="ah-input" placeholder="例：復興路一段99號前路段">
+        </div>
+        <div class="ah-field">
+          <label>路口位置說明</label>
+          <input type="text" id="ah-sub" class="ah-input" placeholder="例：復興路一段 路段">
+        </div>
+        <div class="ah-field">
+          <label>改善類別（可複選）</label>
+          <div class="ah-cats">
+            <label class="ah-cat-lbl"><input type="checkbox" value="cat-walk"> 🚶 人行道設施</label>
+            <label class="ah-cat-lbl"><input type="checkbox" value="cat-stop"> 🛑 停止線標線</label>
+            <label class="ah-cat-lbl"><input type="checkbox" value="cat-line" checked> 🎨 路面標線重繪</label>
+            <label class="ah-cat-lbl"><input type="checkbox" value="cat-infra" checked> 🌿 實體改善</label>
+            <label class="ah-cat-lbl"><input type="checkbox" value="cat-sign"> ⚠️ 標誌設置</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 上傳照片 -->
+      <div class="ah-section">
+        <div class="ah-section-title">② 上傳照片</div>
+        <div class="ah-photos">
+          <div>
+            <div class="ah-photo-lbl">改善前（原圖）</div>
+            <div class="ah-photo-box" id="ah-box-before" onclick="document.getElementById('ah-file-before').click()">
+              <span>點擊上傳</span>
+            </div>
+            <input type="file" id="ah-file-before" accept="image/*" style="display:none" onchange="ahPreview('before',this)">
+          </div>
+          <div>
+            <div class="ah-photo-lbl">方案一（標線）</div>
+            <div class="ah-photo-box" id="ah-box-line" onclick="document.getElementById('ah-file-line').click()">
+              <span>點擊上傳</span>
+            </div>
+            <input type="file" id="ah-file-line" accept="image/*" style="display:none" onchange="ahPreview('line',this)">
+          </div>
+          <div>
+            <div class="ah-photo-lbl">方案二（實體）</div>
+            <div class="ah-photo-box" id="ah-box-infra" onclick="document.getElementById('ah-file-infra').click()">
+              <span>點擊上傳</span>
+            </div>
+            <input type="file" id="ah-file-infra" accept="image/*" style="display:none" onchange="ahPreview('infra',this)">
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ AI 分析 -->
+      <div class="ah-section">
+        <div class="ah-section-title">③ AI 分析照片</div>
+        <button class="ah-ai-btn" id="ah-ai-btn" onclick="ahRunAI()">🤖 分析照片並生成說明</button>
+        <div id="ah-ai-status"></div>
+        <div class="ah-field" style="margin-top:10px">
+          <label>改善說明</label>
+          <textarea id="ah-desc" class="ah-input" rows="3" placeholder="AI 分析後自動填入，可手動修改"></textarea>
+        </div>
+        <div class="ah-field">
+          <label>改善要點（每行一項，以 ✅ 開頭）</label>
+          <textarea id="ah-chips" class="ah-input" rows="4" placeholder="✅ 停車格劃設&#10;✅ 路面標線重繪&#10;✅ 實體人行道&#10;✅ 通行空間改善"></textarea>
+        </div>
+      </div>
+
+      <!-- ④ 地圖定位 -->
+      <div class="ah-section">
+        <div class="ah-section-title">④ 地圖定位</div>
+        <div class="ah-pos-row">
+          <div class="ah-pos-group">
+            <label>🖥️ 桌面 left / top %</label>
+            <div class="ah-pos-pair">
+              <input type="number" step="0.1" id="ah-hx" placeholder="left">
+              <input type="number" step="0.1" id="ah-hy" placeholder="top">
+            </div>
+          </div>
+          <div class="ah-pos-group">
+            <label>📱 手機 left / top %</label>
+            <div class="ah-pos-pair">
+              <input type="number" step="0.1" id="ah-vx" placeholder="left">
+              <input type="number" step="0.1" id="ah-vy" placeholder="top">
+            </div>
+          </div>
+          <button class="ah-pick-btn" onclick="ahStartPick()">🗺️ 地圖上點選</button>
+        </div>
+        <div id="ah-pos-tip"></div>
+      </div>
+
+      <!-- ⑤ 發布 -->
+      <div class="ah-section">
+        <div class="ah-section-title">⑤ 發布至 GitHub</div>
+        <div class="ah-field">
+          <label>GitHub Personal Access Token</label>
+          <div class="ah-token-row">
+            <input type="password" id="ah-token" class="ah-input" placeholder="ghp_…">
+            <label class="ah-remember-lbl">
+              <input type="checkbox" id="ah-remember"> 記住
+            </label>
+          </div>
+        </div>
+        <div id="ah-publish-status"></div>
+        <div class="ah-footer">
+          <button class="ah-btn-cancel" onclick="closeAddHotspot()">取消</button>
+          <button class="ah-btn-publish" id="ah-pub-btn" onclick="ahPublish()">🚀 發布</button>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -867,6 +1088,7 @@
   <span class="admin-badge">🔐 編輯模式</span>
   <span id="admin-map-mode">🖥️ 桌面座標</span>
   <span id="admin-tip">拖曳紅點調整位置，完成後按儲存</span>
+  <button class="admin-btn admin-btn-add" onclick="openAddHotspot()">➕ 新增熱點</button>
   <button class="admin-btn admin-btn-save" id="admin-save-btn" onclick="savePositions()">💾 儲存</button>
   <button class="admin-btn admin-btn-exit" onclick="exitAdmin()">✕ 離開</button>
 </div>
@@ -889,7 +1111,7 @@
     if (e.target === document.getElementById('modal-overlay')) closeModal();
   }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeModal(); closeDrawer(); }
+    if (e.key === 'Escape') { closeModal(); closeDrawer(); closeAddHotspot(); }
   });
   function openDrawer() {
     document.getElementById('info-drawer').classList.add('open');
@@ -908,6 +1130,7 @@
     {id:'hs3', hx:38.0, hy:84.4, vx:35.2, vy:76.0},
     {id:'hs4', hx:33.5, hy:77.9, vx:31.1, vy:71.3},
     {id:'hs5', hx:34.6, hy:63.6, vx:31.7, vy:62.4},
+    /* HS-POS-END */
   ];
   let hsPos = (function() {
     try {
@@ -1026,6 +1249,293 @@
     document.removeEventListener('pointermove', onAdminMove);
     document.removeEventListener('pointerup',   onAdminUp);
     adminDrag = null;
+  }
+
+  // ══ 新增熱點 ══
+  const WORKER_URL = 'https://ohs-law-chatbot.df-hr-openai.workers.dev';
+  const GH_REPO    = 'l80623-gloomy/road-safety-map';
+  let ahPhotos   = { before: null, line: null, infra: null };
+  let ahPickMode = false;
+  let ahPickingFor = 'desktop';
+
+  function openAddHotspot() {
+    const saved = localStorage.getItem('ah-token');
+    if (saved) {
+      document.getElementById('ah-token').value = saved;
+      document.getElementById('ah-remember').checked = true;
+    }
+    document.getElementById('ah-overlay').classList.add('open');
+  }
+
+  function closeAddHotspot() {
+    document.getElementById('ah-overlay').classList.remove('open');
+    ahPickMode = false;
+    document.querySelector('.map-img-wrap').style.cursor = '';
+  }
+
+  function ahPreview(type, input) {
+    if (!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      ahPhotos[type] = e.target.result;
+      const box = document.getElementById('ah-box-' + type);
+      box.innerHTML = '<img src="' + e.target.result +
+        '" style="width:100%;height:100%;object-fit:cover;border-radius:6px">';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  async function ahRunAI() {
+    const btn    = document.getElementById('ah-ai-btn');
+    const status = document.getElementById('ah-ai-status');
+    if (!ahPhotos.before) { status.textContent = '⚠️ 請先上傳改善前照片'; return; }
+    btn.disabled = true;
+    status.innerHTML = '<span style="color:#e07920">⏳ AI 分析中，請稍候…</span>';
+
+    const content = [{
+      type: 'text',
+      text: '你是台灣道路安全改善專家。請根據以下道路照片，用繁體中文撰寫：\n1.「改善說明」一段話（約50-80字），描述現況問題及改善效果\n2.「改善要點」清單，每項以✅開頭，列出3-5個具體改善項目\n\n請以 JSON 格式回覆：\n{"desc":"改善說明文字","chips":["✅ 項目一","✅ 項目二"]}'
+    }];
+    [ahPhotos.before, ahPhotos.line, ahPhotos.infra].forEach(d => {
+      if (d) content.push({ type: 'image_url', image_url: { url: d } });
+    });
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemini-2.5-flash',
+          messages: [{ role: 'user', content }],
+          response_format: { type: 'json_object' }
+        })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content || data.content || '';
+      const jm = text.match(/\{[\s\S]*\}/);
+      if (!jm) throw new Error('回應格式錯誤');
+      const parsed = JSON.parse(jm[0]);
+      document.getElementById('ah-desc').value  = parsed.desc  || '';
+      document.getElementById('ah-chips').value = (parsed.chips || []).join('\n');
+      status.innerHTML = '<span style="color:#2e7d32">✅ 分析完成！可手動修改內容</span>';
+    } catch(err) {
+      status.innerHTML = '<span style="color:#c62828">❌ 分析失敗：' + err.message + '</span>';
+    }
+    btn.disabled = false;
+  }
+
+  function ahStartPick() {
+    ahPickingFor = window.innerWidth <= 768 ? 'mobile' : 'desktop';
+    document.getElementById('ah-overlay').classList.remove('open');
+    ahPickMode = true;
+    document.querySelector('.map-img-wrap').style.cursor = 'crosshair';
+    document.getElementById('ah-pos-tip').textContent =
+      '👆 請在地圖上點選位置（' + (ahPickingFor === 'desktop' ? '🖥️ 桌面' : '📱 手機') + ' 模式）';
+  }
+
+  document.querySelector('.map-img-wrap').addEventListener('click', function(e) {
+    if (!ahPickMode) return;
+    const img  = document.querySelector('.map-img');
+    const rect = img.getBoundingClientRect();
+    const x = +((e.clientX - rect.left) / rect.width  * 100).toFixed(1);
+    const y = +((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
+    if (ahPickingFor === 'desktop') {
+      document.getElementById('ah-hx').value = x;
+      document.getElementById('ah-hy').value = y;
+    } else {
+      document.getElementById('ah-vx').value = x;
+      document.getElementById('ah-vy').value = y;
+    }
+    ahPickMode = false;
+    this.style.cursor = '';
+    document.getElementById('ah-pos-tip').textContent =
+      (ahPickingFor === 'desktop' ? '🖥️ 桌面' : '📱 手機') +
+      ' 座標已設定：left ' + x + '%  top ' + y + '%';
+    document.getElementById('ah-overlay').classList.add('open');
+  });
+
+  async function githubAPI(path, method, body, token) {
+    const res = await fetch('https://api.github.com/repos/' + GH_REPO + path, {
+      method: method || 'GET',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept':        'application/vnd.github+json',
+        'Content-Type':  'application/json'
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || ('HTTP ' + res.status));
+    }
+    return res.json();
+  }
+
+  async function ahPublish() {
+    const name   = document.getElementById('ah-name').value.trim();
+    const sub    = document.getElementById('ah-sub').value.trim();
+    const desc   = document.getElementById('ah-desc').value.trim();
+    const chips  = document.getElementById('ah-chips').value.trim()
+                     .split('\n').map(l => l.trim()).filter(Boolean);
+    const hx     = parseFloat(document.getElementById('ah-hx').value);
+    const hy     = parseFloat(document.getElementById('ah-hy').value);
+    const vx     = parseFloat(document.getElementById('ah-vx').value);
+    const vy     = parseFloat(document.getElementById('ah-vy').value);
+    const token  = document.getElementById('ah-token').value.trim();
+
+    const setStatus = (msg, ok) => {
+      document.getElementById('ah-publish-status').innerHTML =
+        '<span style="color:' + (ok ? '#2e7d32' : '#c62828') + '">' + msg + '</span>';
+    };
+    if (!name)                                       { setStatus('⚠️ 請填寫熱點名稱');                         return; }
+    if (!desc)                                       { setStatus('⚠️ 請填寫改善說明（或先執行 AI 分析）');     return; }
+    if (isNaN(hx)||isNaN(hy)||isNaN(vx)||isNaN(vy)) { setStatus('⚠️ 請完成地圖定位（桌面＋手機均需設定）');   return; }
+    if (!ahPhotos.before)                            { setStatus('⚠️ 請上傳改善前照片');                       return; }
+    if (!token)                                      { setStatus('⚠️ 請輸入 GitHub Token');                    return; }
+
+    if (document.getElementById('ah-remember').checked)
+      localStorage.setItem('ah-token', token);
+    else
+      localStorage.removeItem('ah-token');
+
+    const btn = document.getElementById('ah-pub-btn');
+    btn.disabled = true;
+
+    try {
+      const maxNum = Math.max(...hsPos.map(h => parseInt(h.id.slice(2))));
+      const newNum = maxNum + 1;
+      const newId  = 'hs' + newNum;
+      const folder = name.replace(/前路段$/, '').replace(/路段$/, '');
+
+      const extOf = d => {
+        if (!d) return 'jpg';
+        const m = d.match(/^data:image\/(\w+);/);
+        return m ? m[1].replace('jpeg', 'jpg') : 'jpg';
+      };
+
+      const uploadImg = async (dataUrl, filename, step) => {
+        if (!dataUrl) return;
+        setStatus('⏳ 上傳照片（' + step + '/3）…');
+        await githubAPI(
+          '/contents/' + encodeURIComponent('完成圖') + '/' +
+          encodeURIComponent(folder) + '/' + encodeURIComponent(filename),
+          'PUT',
+          { message: 'add: ' + filename, content: dataUrl.split(',')[1] },
+          token
+        );
+      };
+
+      await uploadImg(ahPhotos.before, folder + '(原圖).' + extOf(ahPhotos.before), 1);
+      await uploadImg(ahPhotos.line,   folder + '(標線).' + extOf(ahPhotos.line),   2);
+      await uploadImg(ahPhotos.infra,  folder + '(實體).' + extOf(ahPhotos.infra),  3);
+
+      setStatus('⏳ 讀取 index.html…');
+      const fileData = await githubAPI('/contents/index.html', 'GET', null, token);
+      const sha  = fileData.sha;
+      const raw  = atob(fileData.content.replace(/\n/g, ''));
+      const uint8 = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) uint8[i] = raw.charCodeAt(i);
+      let html = new TextDecoder('utf-8').decode(uint8);
+
+      if (!html.includes('<!-- HS-BTNS -->'))       throw new Error('找不到 <!-- HS-BTNS --> 標記');
+      if (!html.includes('<!-- HS-MODALS-END -->')) throw new Error('找不到 <!-- HS-MODALS-END --> 標記');
+      if (!html.includes('/* HS-POS-END */'))       throw new Error('找不到 /* HS-POS-END */ 標記');
+
+      const catMap = {
+        'cat-walk':'🚶 人行道設施', 'cat-stop':'🛑 停止線標線',
+        'cat-line':'🎨 路面標線重繪','cat-infra':'🌿 實體改善','cat-sign':'⚠️ 標誌設置'
+      };
+      const cats     = [...document.querySelectorAll('.ah-cats input:checked')].map(i => i.value);
+      const tagsHtml = cats.map(c => '<span class="mtag ' + c + '">' + (catMap[c]||c) + '</span>').join('');
+      const imgBase  = './完成圖/' + folder + '/' + folder;
+      const chipsHtml = chips.map(c => '            <span class="chip">' + c + '</span>').join('\n');
+
+      const btnHtml =
+        '\n        <button class="hotspot hs-' + newNum + '"\n' +
+        '                style="left:' + hx + '%;top:' + hy + '%"\n' +
+        '                onclick="openModal(\'' + newId + '\')"\n' +
+        '                title="' + name + '">\n' +
+        '          <span class="hs-ring"></span>\n' +
+        '          <span class="hs-ring2"></span>\n' +
+        '          <span class="hs-dot"></span>\n' +
+        '        </button>';
+
+      const modalHtml =
+        '\n    <!-- 熱點 ' + newId + ' 內容 -->\n' +
+        '    <div id="modal-' + newId + '">\n' +
+        '      <div class="modal-head">\n' +
+        '        <div class="modal-pin">📍</div>\n' +
+        '        <div>\n' +
+        '          <div class="modal-loc-name">' + name + '</div>\n' +
+        '          <div class="modal-loc-sub">' + (sub || name) + '</div>\n' +
+        '        </div>\n' +
+        '        <div class="modal-tags">' + tagsHtml + '</div>\n' +
+        '      </div>\n' +
+        '      <div class="modal-photos">\n' +
+        '        <div class="mphoto-col">\n' +
+        '          <div class="mphoto-lbl lbl-bf">▌ 改善前（實際拍攝）</div>\n' +
+        '          <div class="mphoto-frame"><img src="' + imgBase + '(原圖).' + extOf(ahPhotos.before) + '" alt="改善前"></div>\n' +
+        '        </div>\n' +
+        '        <div class="mphoto-col">\n' +
+        '          <div class="mphoto-lbl lbl-a1">▌ 改善方案一（標線）</div>\n' +
+        '          <div class="mphoto-frame"><img src="' + imgBase + '(標線).' + extOf(ahPhotos.line || ahPhotos.before) + '" alt="改善後 - 標線方案"></div>\n' +
+        '        </div>\n' +
+        '        <div class="mphoto-col">\n' +
+        '          <div class="mphoto-lbl lbl-a2">▌ 改善方案二（實體）</div>\n' +
+        '          <div class="mphoto-frame"><img src="' + imgBase + '(實體).' + extOf(ahPhotos.infra || ahPhotos.before) + '" alt="改善後 - 實體方案"></div>\n' +
+        '        </div>\n' +
+        '      </div>\n' +
+        '      <div class="modal-desc">\n' +
+        '        <div class="desc-icon">💡</div>\n' +
+        '        <div>\n' +
+        '          <div class="desc-title">改善說明</div>\n' +
+        '          <div class="desc-text">' + desc + '</div>\n' +
+        '          <div class="desc-chips">\n' +
+        chipsHtml + '\n' +
+        '          </div>\n' +
+        '        </div>\n' +
+        '      </div>\n' +
+        '    </div>';
+
+      const posEntry =
+        '\n    {id:\'' + newId + '\', hx:' + hx + ', hy:' + hy + ', vx:' + vx + ', vy:' + vy + '},';
+
+      html = html.replace('<!-- HS-BTNS -->', btnHtml + '\n        <!-- HS-BTNS -->');
+      html = html.replace('<!-- HS-MODALS-END -->', modalHtml + '\n    <!-- HS-MODALS-END -->');
+      html = html.replace('/* HS-POS-END */', posEntry + '\n    /* HS-POS-END */');
+
+      setStatus('⏳ 更新 index.html…');
+      const encoded = new TextEncoder().encode(html);
+      let binary = '';
+      encoded.forEach(b => { binary += String.fromCharCode(b); });
+      await githubAPI('/contents/index.html', 'PUT', {
+        message: 'feat: 新增熱點 ' + name,
+        content: btoa(binary),
+        sha: sha
+      }, token);
+
+      // 即時更新本地顯示（不需刷新頁面）
+      hsPos.push({ id: newId, hx, hy, vx, vy });
+      const wrap   = document.querySelector('.map-img-wrap');
+      const newBtn = document.createElement('button');
+      newBtn.className = 'hotspot hs-' + newNum;
+      newBtn.title     = name;
+      newBtn.innerHTML = '<span class="hs-ring"></span><span class="hs-ring2"></span><span class="hs-dot"></span>';
+      newBtn.onclick   = () => openModal(newId);
+      if (isAdmin) {
+        newBtn.addEventListener('pointerdown', startAdminDrag);
+        newBtn.style.cursor = 'grab';
+      }
+      wrap.appendChild(newBtn);
+      applyPositions();
+
+      setStatus('🎉 發布成功！熱點「' + name + '」已新增，GitHub Pages 約 1 分鐘後更新', true);
+      document.getElementById('ah-pub-btn').textContent = '✅ 已發布';
+    } catch(err) {
+      setStatus('❌ 發布失敗：' + err.message);
+      btn.disabled = false;
+    }
   }
 </script>
 
