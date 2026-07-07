@@ -1052,7 +1052,10 @@
               <input type="number" step="0.1" id="ah-vy" placeholder="top">
             </div>
           </div>
-          <button class="ah-pick-btn" onclick="ahStartPick()">🗺️ 地圖上點選</button>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="ah-pick-btn" onclick="ahStartPick('desktop')">🖥️ 點桌面座標</button>
+            <button class="ah-pick-btn" onclick="ahStartPick('mobile')" style="background:#5a6478">📱 點手機座標</button>
+          </div>
         </div>
         <div id="ah-pos-tip"></div>
       </div>
@@ -1349,13 +1352,13 @@
     btn.disabled = false;
   }
 
-  function ahStartPick() {
-    ahPickingFor = window.innerWidth <= 768 ? 'mobile' : 'desktop';
+  function ahStartPick(mode) {
+    ahPickingFor = mode || (window.innerWidth <= 768 ? 'mobile' : 'desktop');
     document.getElementById('ah-overlay').classList.remove('open');
     ahPickMode = true;
     document.querySelector('.map-img-wrap').style.cursor = 'crosshair';
     document.getElementById('ah-pos-tip').textContent =
-      '👆 請在地圖上點選位置（' + (ahPickingFor === 'desktop' ? '🖥️ 桌面' : '📱 手機') + ' 模式）';
+      '👆 請在地圖上點選位置（' + (ahPickingFor === 'desktop' ? '🖥️ 桌面' : '📱 手機') + ' 模式），點選後自動回到表單';
   }
 
   document.querySelector('.map-img-wrap').addEventListener('click', function(e) {
