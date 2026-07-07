@@ -1316,21 +1316,19 @@
 
     status.innerHTML = '<span style="color:#e07920">⏳ AI 分析中，請稍候…</span>';
 
-    const content = [{
-      type: 'text',
-      text: '你是台灣道路安全改善專家。請根據以下道路照片，用繁體中文撰寫：\n1.「改善說明」一段話（約50-80字），描述現況問題及改善效果\n2.「改善要點」清單，每項以✅開頭，列出3-5個具體改善項目\n\n請務必以純 JSON 格式回覆（不要加 markdown code block）：\n{"desc":"改善說明文字","chips":["✅ 項目一","✅ 項目二"]}'
-    }];
-    imgs.forEach(d => {
-      if (d) content.push({ type: 'image_url', image_url: { url: d } });
-    });
+    const prompt = '你是台灣道路安全改善專家。請根據以下道路照片，用繁體中文撰寫：\n' +
+      '1.「改善說明」一段話（約50-80字），描述現況問題及改善效果\n' +
+      '2.「改善要點」清單，每項以✅開頭，列出3-5個具體改善項目\n\n' +
+      '請以 JSON 格式回覆（不加 markdown code block）：\n' +
+      '{"desc":"改善說明文字","chips":["✅ 項目一","✅ 項目二"]}';
 
     try {
       const res = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gemini-2.5-flash',
-          messages: [{ role: 'user', content }]
+          text:   prompt,
+          images: imgs.filter(Boolean)
         })
       });
       if (!res.ok) {
@@ -1338,9 +1336,9 @@
         throw new Error('HTTP ' + res.status + (errText ? '：' + errText.slice(0, 120) : ''));
       }
       const data = await res.json();
-      const text = data.choices?.[0]?.message?.content || data.content || '';
-      const jm = text.match(/\{[\s\S]*\}/);
-      if (!jm) throw new Error('回應格式錯誤');
+      const raw  = (data.data || data.text || '').replace(/```json\n?|```\n?/g, '').trim();
+      const jm = raw.match(/\{[\s\S]*\}/);
+      if (!jm) throw new Error('回應格式錯誤：' + raw.slice(0, 80));
       const parsed = JSON.parse(jm[0]);
       document.getElementById('ah-desc').value  = parsed.desc  || '';
       document.getElementById('ah-chips').value = (parsed.chips || []).join('\n');
