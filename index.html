@@ -1273,6 +1273,23 @@
     document.querySelector('.map-img-wrap').style.cursor = '';
   }
 
+  // 壓縮圖片至最大 1024px，減少 API 傳輸量
+  function ahResizeImg(dataUrl, maxPx) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+        const w = Math.round(img.width  * scale);
+        const h = Math.round(img.height * scale);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = dataUrl;
+    });
+  }
+
   function ahPreview(type, input) {
     if (!input.files[0]) return;
     const reader = new FileReader();
@@ -1290,13 +1307,20 @@
     const status = document.getElementById('ah-ai-status');
     if (!ahPhotos.before) { status.textContent = '⚠️ 請先上傳改善前照片'; return; }
     btn.disabled = true;
+    status.innerHTML = '<span style="color:#e07920">⏳ 壓縮圖片中…</span>';
+
+    // 壓縮後再送（最大 1024px）
+    const imgs = await Promise.all(
+      [ahPhotos.before, ahPhotos.line, ahPhotos.infra].map(d => d ? ahResizeImg(d, 1024) : null)
+    );
+
     status.innerHTML = '<span style="color:#e07920">⏳ AI 分析中，請稍候…</span>';
 
     const content = [{
       type: 'text',
-      text: '你是台灣道路安全改善專家。請根據以下道路照片，用繁體中文撰寫：\n1.「改善說明」一段話（約50-80字），描述現況問題及改善效果\n2.「改善要點」清單，每項以✅開頭，列出3-5個具體改善項目\n\n請以 JSON 格式回覆：\n{"desc":"改善說明文字","chips":["✅ 項目一","✅ 項目二"]}'
+      text: '你是台灣道路安全改善專家。請根據以下道路照片，用繁體中文撰寫：\n1.「改善說明」一段話（約50-80字），描述現況問題及改善效果\n2.「改善要點」清單，每項以✅開頭，列出3-5個具體改善項目\n\n請務必以純 JSON 格式回覆（不要加 markdown code block）：\n{"desc":"改善說明文字","chips":["✅ 項目一","✅ 項目二"]}'
     }];
-    [ahPhotos.before, ahPhotos.line, ahPhotos.infra].forEach(d => {
+    imgs.forEach(d => {
       if (d) content.push({ type: 'image_url', image_url: { url: d } });
     });
 
@@ -1306,11 +1330,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'gemini-2.5-flash',
-          messages: [{ role: 'user', content }],
-          response_format: { type: 'json_object' }
+          messages: [{ role: 'user', content }]
         })
       });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        throw new Error('HTTP ' + res.status + (errText ? '：' + errText.slice(0, 120) : ''));
+      }
       const data = await res.json();
       const text = data.choices?.[0]?.message?.content || data.content || '';
       const jm = text.match(/\{[\s\S]*\}/);
