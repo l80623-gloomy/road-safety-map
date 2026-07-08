@@ -636,6 +636,15 @@
           <span class="hs-ring2"></span>
           <span class="hs-dot"></span>
         </button>
+        
+        <button class="hotspot hs-6"
+                style="left:31%;top:82%"
+                onclick="openModal('hs6')"
+                title="大新路復興路一段口無外推">
+          <span class="hs-ring"></span>
+          <span class="hs-ring2"></span>
+          <span class="hs-dot"></span>
+        </button>
         <!-- HS-BTNS -->
         </div><!-- /map-img-wrap -->
       </div><!-- /map-col -->
@@ -975,6 +984,42 @@
         </div>
       </div>
     </div>
+    
+    <!-- 熱點 hs6 內容 -->
+    <div id="modal-hs6">
+      <div class="modal-head">
+        <div class="modal-pin">📍</div>
+        <div>
+          <div class="modal-loc-name">大新路復興路一段口無外推</div>
+          <div class="modal-loc-sub">大新路復興路一段交叉口</div>
+        </div>
+        <div class="modal-tags"><span class="mtag cat-walk">🚶 人行道設施</span><span class="mtag cat-infra">🌿 實體改善</span></div>
+      </div>
+      <div class="modal-photos">
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-bf">▌ 改善前（實際拍攝）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路復興路一段口無外推/大新路復興路一段口無外推(原圖).jpg" alt="改善前"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a1">▌ 改善方案一（標線）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路復興路一段口無外推/大新路復興路一段口無外推(標線).jpg" alt="改善後 - 標線方案"></div>
+        </div>
+        <div class="mphoto-col">
+          <div class="mphoto-lbl lbl-a2">▌ 改善方案二（實體）</div>
+          <div class="mphoto-frame"><img src="./完成圖/大新路復興路一段口無外推/大新路復興路一段口無外推(實體).jpg" alt="改善後 - 實體方案"></div>
+        </div>
+      </div>
+      <div class="modal-desc">
+        <div class="desc-icon">💡</div>
+        <div>
+          <div class="desc-title">改善說明</div>
+          <div class="desc-text">現有道路設計對行人不友善，轉角無外推且人行動線不連貫。透過改善，將提升行人通行的安全性與舒適性，並促進整體市容環境。</div>
+          <div class="desc-chips">
+            <span class="chip">✅ 外推人行道並鋪設平整路面，改善行走空間與車道緊鄰之問題。</span>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- HS-MODALS-END -->
 
   </div>
@@ -1154,6 +1199,8 @@
     {id:'hs3', hx:38.0, hy:84.4, vx:35.2, vy:76.0},
     {id:'hs4', hx:33.5, hy:77.9, vx:31.1, vy:71.3},
     {id:'hs5', hx:34.6, hy:63.6, vx:31.7, vy:62.4},
+    
+    {id:'hs6', hx:31, hy:82, vx:30.6, vy:81.9},
     /* HS-POS-END */
   ];
   let hsPos = (function() {
