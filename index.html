@@ -207,24 +207,27 @@
     /* ── Hotspot marker ── */
     .hotspot {
       position: absolute;
-      width: 44px; height: 44px;
+      width: 24px; height: 24px;   /* 點擊區域縮至紅點大小 */
       border: none; background: transparent;
       cursor: pointer; padding: 0;
       transform: translate(-50%, -50%);
       z-index: 10;
+      overflow: visible;            /* 環狀動畫允許溢出 */
     }
     .hs-ring {
-      position: absolute; inset: 0; border-radius: 50%;
+      position: absolute; inset: -10px; border-radius: 50%;  /* -10px → 視覺 44px，與原本相同 */
       border: 2px solid rgba(220,38,38,.65);
       animation: hs-pulse 1.8s ease-out infinite;
+      pointer-events: none;         /* 環狀區域不吃點擊，避免遮擋鄰近熱點 */
     }
     .hs-ring2 {
-      position: absolute; inset: 0; border-radius: 50%;
+      position: absolute; inset: -10px; border-radius: 50%;
       border: 2px solid rgba(220,38,38,.35);
       animation: hs-pulse 1.8s ease-out infinite .6s;
+      pointer-events: none;
     }
     .hs-dot {
-      position: absolute; inset: 10px; border-radius: 50%;
+      position: absolute; inset: 0; border-radius: 50%;      /* 填滿 24px 按鈕 */
       background: radial-gradient(circle at 35% 35%, #f87171, #dc2626);
       box-shadow: 0 2px 10px rgba(220,38,38,.55);
       transition: transform .15s;
