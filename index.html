@@ -124,12 +124,31 @@
       display: flex; justify-content: center; align-items: center;
       min-height: 560px; position: relative;
     }
-    .map-img-wrap { position: relative; display: inline-block; }
+    .map-img-wrap { position: relative; display: inline-block; transform-origin: 0 0; }
     .map-img {
       max-width: 100%; max-height: 72vh;
       object-fit: contain; border-radius: 10px;
       box-shadow: 0 8px 40px rgba(0,0,0,.18); display: block;
     }
+
+    /* ── Pinch-to-Zoom UI ── */
+    .map-stage     { overflow: hidden; }
+    .map-hint      { position: relative; z-index: 5; }
+    .zoom-tip {
+      position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,.62); color: #fff; font-size: 12px; font-weight: 600;
+      padding: 6px 18px; border-radius: 20px; pointer-events: none;
+      opacity: 0; transition: opacity .3s; white-space: nowrap; z-index: 20;
+    }
+    .zoom-tip.visible { opacity: 1; }
+    #map-zoom-reset {
+      position: absolute; top: 18px; right: 18px; z-index: 20;
+      background: rgba(255,255,255,.92); border: 1px solid #d0ccc4;
+      border-radius: 8px; padding: 5px 12px; font-size: 12px;
+      cursor: pointer; display: none; font-family: inherit; font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15); color: var(--navy);
+    }
+    #map-zoom-reset.visible { display: block; }
 
     /* ── Info FAB ── */
     .info-fab {
@@ -568,7 +587,7 @@
       <div class="map-col">
         <div class="map-hint">
           <span class="map-hint-dot"></span>
-          點擊地圖上的紅色標記，即可查看該路段改善前後對比與建議方案
+          點擊地圖上的紅色標記，即可查看該路段改善前後對比與建議方案　📱 手機可雙指縮放
           <button class="info-fab" onclick="openDrawer()">ⓘ 說明</button>
         </div>
         <div class="map-img-wrap">
@@ -620,6 +639,8 @@
         <!-- HS-BTNS -->
         </div><!-- /map-img-wrap -->
       </div><!-- /map-col -->
+      <div class="zoom-tip" id="zoom-tip">雙點兩下還原 · 單指可拖曳平移</div>
+      <button id="map-zoom-reset" onclick="resetMapZoom()">✕ 縮回原尺寸</button>
     </div><!-- /map-stage -->
 
   </div><!-- /map-card -->
@@ -1185,6 +1206,7 @@
   }
 
   function enterAdmin() {
+    if (typeof resetMapZoom === 'function') resetMapZoom();
     isAdmin = true;
     document.getElementById('admin-bar').classList.add('active');
     const mobile = window.innerWidth <= 768;
@@ -1564,6 +1586,123 @@
       btn.disabled = false;
     }
   }
+
+  // ── 地圖雙指縮放（Pinch-to-Zoom）────────────────────────────────
+  (function () {
+    const wrap = document.querySelector('.map-img-wrap');
+    let scale = 1, tx = 0, ty = 0;
+    let lastDist = 0, lastMidX = 0, lastMidY = 0;
+    let isPinch = false, isDrag = false;
+    let dragStartX = 0, dragStartY = 0;
+    let lastTap = 0;
+
+    function applyTransform() {
+      wrap.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+    }
+
+    function clamp() {
+      if (scale <= 1.02) { scale = 1; tx = 0; ty = 0; return; }
+      const w = wrap.offsetWidth;
+      const h = wrap.offsetHeight;
+      tx = Math.min(0, Math.max(-w * (scale - 1), tx));
+      ty = Math.min(0, Math.max(-h * (scale - 1), ty));
+    }
+
+    function setZoomUI(on) {
+      const tip = document.getElementById('zoom-tip');
+      const btn = document.getElementById('map-zoom-reset');
+      if (tip) tip.classList.toggle('visible', on);
+      if (btn) btn.classList.toggle('visible', on);
+    }
+
+    window.resetMapZoom = function () {
+      scale = 1; tx = 0; ty = 0;
+      applyTransform();
+      setZoomUI(false);
+    };
+
+    function ptDist(touches) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    function ptMid(touches) {
+      return {
+        x: (touches[0].clientX + touches[1].clientX) / 2,
+        y: (touches[0].clientY + touches[1].clientY) / 2
+      };
+    }
+
+    wrap.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 2) {
+        isPinch = true;
+        isDrag  = false;
+        lastDist = ptDist(e.touches);
+        const m  = ptMid(e.touches);
+        lastMidX = m.x;
+        lastMidY = m.y;
+      } else if (e.touches.length === 1 && scale > 1) {
+        // 只在非熱點、非選點模式下啟用拖曳
+        if (!e.target.closest('.hotspot') && !ahPickMode) {
+          isDrag      = true;
+          isPinch     = false;
+          dragStartX  = e.touches[0].clientX - tx;
+          dragStartY  = e.touches[0].clientY - ty;
+        }
+      }
+    }, { passive: true });
+
+    wrap.addEventListener('touchmove', function (e) {
+      if (isPinch && e.touches.length === 2) {
+        e.preventDefault();
+        const curDist  = ptDist(e.touches);
+        const curMid   = ptMid(e.touches);
+        const newScale = Math.min(4, Math.max(1, scale * curDist / lastDist));
+        const rect     = wrap.getBoundingClientRect();
+        const sf       = newScale / scale;
+
+        // 以雙指中心點為縮放基準
+        tx = tx + (lastMidX - rect.left)  * (1 - sf);
+        ty = ty + (lastMidY - rect.top)   * (1 - sf);
+        // 加上雙指平移量
+        tx += curMid.x - lastMidX;
+        ty += curMid.y - lastMidY;
+
+        scale    = newScale;
+        lastDist = curDist;
+        lastMidX = curMid.x;
+        lastMidY = curMid.y;
+
+        clamp();
+        applyTransform();
+        setZoomUI(scale > 1.05);
+
+      } else if (isDrag && e.touches.length === 1 && scale > 1) {
+        e.preventDefault();
+        tx = e.touches[0].clientX - dragStartX;
+        ty = e.touches[0].clientY - dragStartY;
+        clamp();
+        applyTransform();
+      }
+    }, { passive: false });
+
+    wrap.addEventListener('touchend', function (e) {
+      if (e.touches.length < 2) isPinch = false;
+      if (e.touches.length === 0) isDrag = false;
+
+      // 雙點兩下還原
+      if (e.changedTouches.length === 1 && scale > 1) {
+        const now = Date.now();
+        if (now - lastTap < 300) resetMapZoom();
+        lastTap = now;
+      }
+    });
+
+    // 旋轉/換尺寸時重設（避免座標錯亂）
+    window.addEventListener('resize', function () {
+      if (scale > 1) resetMapZoom();
+    });
+  })();
 </script>
 
 </body>
