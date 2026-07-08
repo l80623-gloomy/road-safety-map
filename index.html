@@ -1734,11 +1734,14 @@
     }, { passive: false });
 
     wrap.addEventListener('touchend', function (e) {
-      if (e.touches.length < 2) isPinch = false;
+      if (e.touches.length < 2) {
+        if (isPinch) lastTap = 0;   // pinch 剛結束，重置雙點計時，避免抬指被誤判為雙點還原
+        isPinch = false;
+      }
       if (e.touches.length === 0) isDrag = false;
 
-      // 雙點兩下還原
-      if (e.changedTouches.length === 1 && scale > 1) {
+      // 雙點兩下還原（必須全部手指離開、且只有一根手指抬起）
+      if (e.touches.length === 0 && e.changedTouches.length === 1 && scale > 1) {
         const now = Date.now();
         if (now - lastTap < 300) resetMapZoom();
         lastTap = now;
