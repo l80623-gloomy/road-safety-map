@@ -238,6 +238,22 @@
       100% { transform: scale(1.7); opacity: 0; }
     }
 
+    /* ── 管理員：熱點編輯 / 刪除徽章 ── */
+    .hs-admin-panel {
+      position: absolute; bottom: calc(100% + 6px);
+      left: 50%; transform: translateX(-50%);
+      display: flex; gap: 4px; z-index: 100; pointer-events: auto;
+    }
+    .hs-admin-btn {
+      width: 22px; height: 22px; border: none; border-radius: 50%;
+      font-size: 11px; cursor: pointer; padding: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,.4);
+      display: flex; align-items: center; justify-content: center;
+      font-family: inherit; line-height: 1; font-weight: 700;
+    }
+    .hs-edit-btn { background: #2563eb; color: #fff; }
+    .hs-del-btn  { background: #dc2626; color: #fff; }
+
     .map-card-footer {
       padding: 13px 22px; border-top: 1px solid var(--border);
       display: flex; align-items: center; gap: 8px;
@@ -1183,7 +1199,7 @@
     if (e.target === document.getElementById('modal-overlay')) closeModal();
   }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeModal(); closeDrawer(); closeAddHotspot(); }
+    if (e.key === 'Escape') { closeModal(); closeDrawer(); closeAddHotspot(); closeEditHotspot(); }
   });
   function openDrawer() {
     document.getElementById('info-drawer').classList.add('open');
@@ -1265,6 +1281,7 @@
       btn.addEventListener('pointerdown', startAdminDrag);
       btn.style.cursor = 'grab';
     });
+    addAdminPanels();
   }
 
   function exitAdmin() {
@@ -1274,6 +1291,8 @@
       btn.removeEventListener('pointerdown', startAdminDrag);
       btn.style.cursor = '';
     });
+    removeAdminPanels();
+    closeEditHotspot();
     adminDrag = null;
     document.removeEventListener('pointermove', onAdminMove);
     document.removeEventListener('pointerup',   onAdminUp);
@@ -1434,24 +1453,41 @@
   }
 
   document.querySelector('.map-img-wrap').addEventListener('click', function(e) {
-    if (!ahPickMode) return;
     const img  = document.querySelector('.map-img');
     const rect = img.getBoundingClientRect();
     const x = +((e.clientX - rect.left) / rect.width  * 100).toFixed(1);
     const y = +((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
-    if (ahPickingFor === 'desktop') {
-      document.getElementById('ah-hx').value = x;
-      document.getElementById('ah-hy').value = y;
-    } else {
-      document.getElementById('ah-vx').value = x;
-      document.getElementById('ah-vy').value = y;
+
+    if (ahPickMode) {
+      if (ahPickingFor === 'desktop') {
+        document.getElementById('ah-hx').value = x;
+        document.getElementById('ah-hy').value = y;
+      } else {
+        document.getElementById('ah-vx').value = x;
+        document.getElementById('ah-vy').value = y;
+      }
+      ahPickMode = false;
+      this.style.cursor = '';
+      document.getElementById('ah-pos-tip').textContent =
+        (ahPickingFor === 'desktop' ? '🖥️ 桌面' : '📱 手機') +
+        ' 座標已設定：left ' + x + '%  top ' + y + '%';
+      document.getElementById('ah-overlay').classList.add('open');
+
+    } else if (hePickMode) {
+      if (hePickingFor === 'desktop') {
+        document.getElementById('he-hx').value = x;
+        document.getElementById('he-hy').value = y;
+      } else {
+        document.getElementById('he-vx').value = x;
+        document.getElementById('he-vy').value = y;
+      }
+      hePickMode = false;
+      this.style.cursor = '';
+      document.getElementById('he-pos-tip').textContent =
+        (hePickingFor === 'desktop' ? '🖥️ 桌面' : '📱 手機') +
+        ' 座標已設定：left ' + x + '%  top ' + y + '%';
+      document.getElementById('he-overlay').style.display = 'flex';
     }
-    ahPickMode = false;
-    this.style.cursor = '';
-    document.getElementById('ah-pos-tip').textContent =
-      (ahPickingFor === 'desktop' ? '🖥️ 桌面' : '📱 手機') +
-      ' 座標已設定：left ' + x + '%  top ' + y + '%';
-    document.getElementById('ah-overlay').classList.add('open');
   });
 
   async function githubAPI(path, method, body, token) {
@@ -1637,6 +1673,293 @@
     }
   }
 
+  // ── 管理員：熱點編輯 / 刪除 ─────────────────────────────────────
+
+  function addAdminPanels() {
+    document.querySelectorAll('.hotspot').forEach(function(btn) {
+      const m = btn.className.match(/hs-(\d+)/);
+      if (!m) return;
+      const hsId = 'hs' + m[1];
+      const panel = document.createElement('div');
+      panel.className = 'hs-admin-panel';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'hs-admin-btn hs-edit-btn';
+      editBtn.title = '編輯';
+      editBtn.textContent = '✏';
+      editBtn.addEventListener('click',       function(e){ e.stopPropagation(); openEditHotspot(hsId); });
+      editBtn.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'hs-admin-btn hs-del-btn';
+      delBtn.title = '刪除';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click',       function(e){ e.stopPropagation(); deleteHotspot(hsId); });
+      delBtn.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
+
+      panel.append(editBtn, delBtn);
+      btn.appendChild(panel);
+    });
+  }
+
+  function removeAdminPanels() {
+    document.querySelectorAll('.hs-admin-panel').forEach(function(p){ p.remove(); });
+  }
+
+  // ── 編輯 Overlay ─────────────────────────────────────────────────
+
+  let hePickMode = false, hePickingFor = 'desktop';
+
+  function openEditHotspot(hsId) {
+    const n     = hsId.replace('hs', '');
+    const modal = document.getElementById('modal-' + hsId);
+    const pos   = hsPos.find(function(h){ return h.id === hsId; }) || {};
+
+    document.getElementById('he-id').value   = hsId;
+    document.getElementById('he-name').value =
+      (modal?.querySelector('.modal-loc-name')?.textContent || '').trim();
+    document.getElementById('he-sub').value  =
+      (modal?.querySelector('.modal-loc-sub')?.textContent  || '').trim();
+
+    const descEl = modal?.querySelector('.desc-text');
+    document.getElementById('he-desc').value  =
+      descEl ? descEl.innerText.trim().replace(/\s+/g, ' ') : '';
+
+    const chips = [...(modal?.querySelectorAll('.chip') || [])].map(function(c){ return c.textContent.trim(); });
+    document.getElementById('he-chips').value = chips.join('\n');
+
+    document.getElementById('he-hx').value = pos.hx ?? '';
+    document.getElementById('he-hy').value = pos.hy ?? '';
+    document.getElementById('he-vx').value = pos.vx ?? '';
+    document.getElementById('he-vy').value = pos.vy ?? '';
+
+    const saved = localStorage.getItem('ah-token') || '';
+    document.getElementById('he-token').value    = saved;
+    document.getElementById('he-remember').checked = !!saved;
+
+    document.getElementById('he-status').textContent = '';
+    document.getElementById('he-pos-tip').textContent = '';
+    const btn = document.getElementById('he-save-btn');
+    btn.disabled = false;
+    btn.textContent = '💾 儲存並發布';
+
+    document.getElementById('he-overlay').style.display = 'flex';
+  }
+
+  function closeEditHotspot() {
+    const ov = document.getElementById('he-overlay');
+    if (ov) ov.style.display = 'none';
+    if (hePickMode) {
+      hePickMode = false;
+      document.querySelector('.map-img-wrap').style.cursor = '';
+    }
+  }
+
+  function heStartPick(mode) {
+    hePickingFor = mode;
+    document.getElementById('he-overlay').style.display = 'none';
+    hePickMode = true;
+    document.querySelector('.map-img-wrap').style.cursor = 'crosshair';
+    document.getElementById('he-pos-tip').textContent =
+      '👆 請點選地圖位置（' + (mode === 'desktop' ? '🖥️ 桌面' : '📱 手機') + ' 模式）';
+  }
+
+  // ── 刪除熱點 ─────────────────────────────────────────────────────
+
+  async function deleteHotspot(hsId) {
+    const modal = document.getElementById('modal-' + hsId);
+    const name  = (modal?.querySelector('.modal-loc-name')?.textContent || hsId).trim();
+
+    if (!confirm('確定刪除「' + name + '」？\n此操作會直接更新 GitHub，無法還原。')) return;
+
+    const token = (localStorage.getItem('ah-token') ||
+                   document.getElementById('he-token')?.value ||
+                   document.getElementById('ah-token')?.value || '').trim();
+    if (!token) { alert('請先填入並記住 GitHub Token（新增或編輯面板）。'); return; }
+
+    const n = hsId.replace('hs', '');
+    try {
+      const fileData = await githubAPI('/contents/index.html', 'GET', null, token);
+      const raw  = atob(fileData.content.replace(/\n/g, ''));
+      const u8   = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) u8[i] = raw.charCodeAt(i);
+      let html = new TextDecoder('utf-8').decode(u8);
+
+      // 1. 移除熱點按鈕
+      html = html.replace(
+        new RegExp('[\\t ]*<button[^>]*class="hotspot hs-' + n + '"[\\s\\S]*?<\\/button>[ \\t]*\\n?', 'g'),
+        ''
+      );
+      // 2. 移除 modal（計算 div 深度）
+      html = heRemoveModal(html, hsId);
+      // 3. 移除 defaultPos 條目
+      html = html.replace(
+        new RegExp('[ \\t]*\\{id:\\s*\'' + hsId + '\'[^}]*\\},?\\r?\\n?'),
+        ''
+      );
+
+      const enc = new TextEncoder().encode(html);
+      let bin = '';
+      enc.forEach(function(b){ bin += String.fromCharCode(b); });
+      await githubAPI('/contents/index.html', 'PUT', {
+        message: 'delete: 移除熱點 ' + name,
+        content: btoa(bin), sha: fileData.sha
+      }, token);
+
+      document.querySelector('.hotspot.hs-' + n)?.remove();
+      modal?.remove();
+      hsPos = hsPos.filter(function(h){ return h.id !== hsId; });
+      alert('✅ 熱點「' + name + '」已刪除！GitHub Pages 約 1 分鐘後生效。');
+    } catch(err) {
+      alert('❌ 刪除失敗：' + err.message);
+    }
+  }
+
+  function heRemoveModal(html, hsId) {
+    const startTag = '<div id="modal-' + hsId + '">';
+    const startIdx = html.indexOf(startTag);
+    if (startIdx === -1) return html;
+    let depth = 0, i = startIdx;
+    while (i < html.length) {
+      if (html[i] !== '<') { i++; continue; }
+      if (html.startsWith('</div>', i)) {
+        if (--depth === 0) { i += 6; break; }
+        i += 6;
+      } else if (html.startsWith('<div', i) && /[\s>]/.test(html[i + 4] || '')) {
+        depth++;
+        const end = html.indexOf('>', i);
+        i = end + 1;
+      } else { i++; }
+    }
+    return html.slice(0, startIdx).replace(/\s+$/, '\n') +
+           html.slice(i).replace(/^\s*\n/, '\n');
+  }
+
+  // ── 儲存編輯 ─────────────────────────────────────────────────────
+
+  async function heSave() {
+    const hsId  = document.getElementById('he-id').value;
+    const n     = hsId.replace('hs', '');
+    const name  = document.getElementById('he-name').value.trim();
+    const sub   = document.getElementById('he-sub').value.trim();
+    const desc  = document.getElementById('he-desc').value.trim();
+    const chips = document.getElementById('he-chips').value.trim()
+                    .split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+    const hxV   = document.getElementById('he-hx').value;
+    const hyV   = document.getElementById('he-hy').value;
+    const vxV   = document.getElementById('he-vx').value;
+    const vyV   = document.getElementById('he-vy').value;
+    const token = document.getElementById('he-token').value.trim();
+
+    const setS  = function(msg){ document.getElementById('he-status').textContent = msg; };
+    if (!name)  { setS('⚠️ 請填入熱點名稱'); return; }
+    if (!token) { setS('⚠️ 請填入 GitHub Token'); return; }
+    if (document.getElementById('he-remember').checked) localStorage.setItem('ah-token', token);
+
+    const saveBtn = document.getElementById('he-save-btn');
+    saveBtn.disabled = true;
+
+    try {
+      // 更新 DOM
+      const modal = document.getElementById('modal-' + hsId);
+      if (modal) {
+        const locName   = modal.querySelector('.modal-loc-name');
+        const locSub    = modal.querySelector('.modal-loc-sub');
+        const descEl    = modal.querySelector('.desc-text');
+        const descChips = modal.querySelector('.desc-chips');
+        if (locName)   locName.textContent   = name;
+        if (locSub)    locSub.textContent    = sub;
+        if (descEl)    descEl.textContent    = desc;
+        if (descChips) descChips.innerHTML   =
+          chips.map(function(c){ return '<span class="chip">' + c + '</span>'; }).join('\n        ');
+      }
+      const hotBtn = document.querySelector('.hotspot.hs-' + n);
+      if (hotBtn) hotBtn.title = name;
+
+      // 更新 hsPos
+      const posEntry = hsPos.find(function(h){ return h.id === hsId; });
+      if (posEntry) {
+        if (hxV !== '') posEntry.hx = parseFloat(hxV);
+        if (hyV !== '') posEntry.hy = parseFloat(hyV);
+        if (vxV !== '') posEntry.vx = parseFloat(vxV);
+        if (vyV !== '') posEntry.vy = parseFloat(vyV);
+      }
+      applyPositions();
+
+      // 讀取 GitHub 檔案
+      setS('⏳ 讀取 GitHub 檔案…');
+      const fileData = await githubAPI('/contents/index.html', 'GET', null, token);
+      const raw = atob(fileData.content.replace(/\n/g, ''));
+      const u8  = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) u8[i] = raw.charCodeAt(i);
+      let html = new TextDecoder('utf-8').decode(u8);
+
+      // 1. 更新按鈕 title
+      const escapedName = name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      html = html.replace(
+        new RegExp('(<button[^>]+class="hotspot hs-' + n + '"[^>]+title=")[^"]*(")', 'g'),
+        '$1' + escapedName + '$2'
+      ).replace(
+        new RegExp('(<button[^>]+title=")[^"]*("[^>]+class="hotspot hs-' + n + '")', 'g'),
+        '$1' + escapedName + '$2'
+      );
+
+      // 2. 取得更新後的 modal outerHTML（排除 admin panel）
+      if (modal) {
+        const clone = modal.cloneNode(true);
+        clone.querySelectorAll('.hs-admin-panel').forEach(function(p){ p.remove(); });
+        const newModalHtml = clone.outerHTML;
+        html = heReplaceModal(html, hsId, newModalHtml);
+      }
+
+      // 3. 更新 defaultPos 座標條目
+      if (posEntry) {
+        html = html.replace(
+          new RegExp("\\{id:\\s*'" + hsId + "'[^}]*\\}"),
+          "{id:'" + hsId + "', hx:" + posEntry.hx +
+          ", hy:" + posEntry.hy +
+          ", vx:" + posEntry.vx +
+          ", vy:" + posEntry.vy + "}"
+        );
+      }
+
+      // 提交
+      setS('⏳ 更新 GitHub…');
+      const enc = new TextEncoder().encode(html);
+      let bin = '';
+      enc.forEach(function(b){ bin += String.fromCharCode(b); });
+      await githubAPI('/contents/index.html', 'PUT', {
+        message: 'edit: 更新熱點 ' + name,
+        content: btoa(bin), sha: fileData.sha
+      }, token);
+
+      setS('🎉 更新成功！GitHub Pages 約 1 分鐘後生效');
+      saveBtn.textContent = '✅ 已儲存';
+    } catch(err) {
+      setS('❌ 失敗：' + err.message);
+      saveBtn.disabled = false;
+    }
+  }
+
+  function heReplaceModal(html, hsId, newHtml) {
+    const startTag = '<div id="modal-' + hsId + '">';
+    const startIdx = html.indexOf(startTag);
+    if (startIdx === -1) return html;
+    let depth = 0, i = startIdx;
+    while (i < html.length) {
+      if (html[i] !== '<') { i++; continue; }
+      if (html.startsWith('</div>', i)) {
+        if (--depth === 0) { i += 6; break; }
+        i += 6;
+      } else if (html.startsWith('<div', i) && /[\s>]/.test(html[i + 4] || '')) {
+        depth++;
+        const end = html.indexOf('>', i);
+        i = end + 1;
+      } else { i++; }
+    }
+    return html.slice(0, startIdx) + newHtml + html.slice(i);
+  }
+
   // ── 地圖雙指縮放（Pinch-to-Zoom）────────────────────────────────
   (function () {
     const wrap = document.querySelector('.map-img-wrap');
@@ -1757,6 +2080,81 @@
     });
   })();
 </script>
+
+
+<!-- ══════ HOTSPOT EDIT OVERLAY ══════ -->
+<div id="he-overlay" style="position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:560px;box-shadow:0 24px 64px rgba(0,0,0,.35);margin:auto;font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif">
+    <div class="ah-head">
+      <span>✏️ 編輯熱點</span>
+      <button class="ah-head-close" onclick="closeEditHotspot()">✕</button>
+    </div>
+    <div class="ah-body">
+      <input type="hidden" id="he-id">
+
+      <div class="ah-section">
+        <div class="ah-section-title">① 名稱與副標題</div>
+        <div class="ah-field">
+          <label>熱點名稱（必填）</label>
+          <input id="he-name" type="text" class="ah-input" placeholder="例：復興路54號前路段">
+        </div>
+        <div class="ah-field">
+          <label>副標題</label>
+          <input id="he-sub" type="text" class="ah-input" placeholder="例：復興路一段 南側路段">
+        </div>
+      </div>
+
+      <div class="ah-section">
+        <div class="ah-section-title">② 改善說明</div>
+        <textarea id="he-desc" class="ah-input" rows="4" placeholder="改善說明文字..."></textarea>
+      </div>
+
+      <div class="ah-section">
+        <div class="ah-section-title">③ 改善要點（每行一個）</div>
+        <textarea id="he-chips" class="ah-input" rows="4" placeholder="✅ 項目一&#10;✅ 項目二"></textarea>
+      </div>
+
+      <div class="ah-section">
+        <div class="ah-section-title">④ 地圖座標</div>
+        <div class="ah-pos-row" style="margin-bottom:10px">
+          <div class="ah-pos-group">
+            <label>🖥️ 桌面 left / top</label>
+            <div class="ah-pos-pair">
+              <input id="he-hx" type="number" step="0.1" placeholder="left%">
+              <input id="he-hy" type="number" step="0.1" placeholder="top%">
+            </div>
+          </div>
+          <div class="ah-pos-group">
+            <label>📱 手機 left / top</label>
+            <div class="ah-pos-pair">
+              <input id="he-vx" type="number" step="0.1" placeholder="left%">
+              <input id="he-vy" type="number" step="0.1" placeholder="top%">
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="ah-pick-btn" onclick="heStartPick('desktop')">🖥️ 重新點桌面座標</button>
+          <button class="ah-pick-btn" onclick="heStartPick('mobile')" style="background:#5a6478">📱 重新點手機座標</button>
+        </div>
+        <div id="he-pos-tip" style="font-size:11px;color:#888;margin-top:6px;min-height:16px"></div>
+      </div>
+
+      <div class="ah-section">
+        <div class="ah-section-title">⑤ 發布至 GitHub</div>
+        <div class="ah-token-row">
+          <input id="he-token" type="password" class="ah-input" placeholder="ghp_...">
+          <label class="ah-remember-lbl"><input type="checkbox" id="he-remember"> 記住</label>
+        </div>
+      </div>
+
+      <div id="he-status" style="font-size:12px;color:#5a6478;min-height:18px;padding:2px 0"></div>
+      <div class="ah-footer">
+        <button class="ah-btn-cancel" onclick="closeEditHotspot()">取消</button>
+        <button id="he-save-btn" class="ah-btn-publish" onclick="heSave()">💾 儲存並發布</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
